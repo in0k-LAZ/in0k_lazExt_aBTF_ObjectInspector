@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="in0k_lazExt_aBTF_ObjectInspector"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="srcPKG"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <Other>
+        <CompilerMessages>
+          <MsgFileName Value=""/>
+        </CompilerMessages>
+        <CompilerPath Value="$(CompPath)"/>
+      </Other>
+    </CompilerOptions>
+    <Version Minor="1"/>
+    <Files Count="4">
+      <Item1>
+        <Filename Value="in0k_lazExt_aBTF_ObjectInspector_INI.inc"/>
+        <Type Value="Text"/>
+      </Item1>
+      <Item2>
+        <Filename Value="in0k_lazExt_aBTF_ObjectInspector_REG.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="in0k_lazExt_aBTF_ObjectInspector_REG"/>
+      </Item2>
+      <Item3>
+        <Filename Value="srcPKG\lazExt_aBTF_ObjectInspector.pas"/>
+        <UnitName Value="lazExt_aBTF_ObjectInspector"/>
+      </Item3>
+      <Item4>
+        <Filename Value="srcPKG\lazExt_aBTF_ObjectInspector_DEBUG.pas"/>
+        <UnitName Value="lazExt_aBTF_ObjectInspector_DEBUG"/>
+      </Item4>
+    </Files>
+    <Type Value="DesignTime"/>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="IDEIntf"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
