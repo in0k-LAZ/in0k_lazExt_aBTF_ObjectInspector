@@ -29,7 +29,7 @@ interface
     {$define _lazExt_aBTF_CodeExplorer_API_002_}
     {$define _lazExt_aBTF_CodeExplorer_API_001_}
 {$endif}
-{$ifDef lazExt_aBTF_CodeExplorer_EventLOG_mode}
+{$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}
     {$define _EventLOG_}
 {$else}
     {$undef  _EventLOG_}
@@ -38,10 +38,10 @@ interface
 {%endRegion}
 {%region --- Hint about Global SETTINGs on Compile ---------------- /fold}
 {$hint 'SETTINGs info: ---------------------------->>>'}
-{$ifDef lazExt_aBTF_CodeExplorer_EventLOG_mode}
-    {$hint 'lazExt_aBTF_CodeExplorer_EventLOG_mode On'}
+{$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}
+    {$hint 'lazExt_aBTF_ObjectInspector_EventLOG_mode On'}
 {$else}
-    {$hint 'lazExt_aBTF_CodeExplorer_EventLOG_mode OFF'}
+    {$hint 'lazExt_aBTF_ObjectInspector_EventLOG_mode OFF'}
 {$endif}
 {$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
     {$hint 'lazExt_aBTF_CodeExplorer_Auto_SHOW On'}
@@ -61,25 +61,36 @@ interface
 {$hint '<<<---------------------------------------->>>'}
 {%endRegion}
 
-uses {$ifDEF lazExt_aBTF_CodeExplorer_EventLOG_mode}
-        sysutils, Dialogs, lazExt_aBTF_CodeExplorer_DEBUG,
+
+{$undef _lazExt_aBTF_CodeExplorer_API_002_}
+{$undef _lazExt_aBTF_CodeExplorer_API_003_}
+{$undef _lazExt_aBTF_CodeExplorer_API_004_}
+{$undef _lazExt_aBTF_CodeExplorer_API_005_}
+
+
+uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
+        sysutils, Dialogs, lazExt_aBTF_ObjectInspector_DEBUG,
      {$endIf}
      {$ifDEF lazExt_aBTF_CodeExplorer_WinAPI_mode}
         windows, Controls,
      {$endIf}
-     SrcEditorIntf, IDECommands,
+     SrcEditorIntf, IDECommands, MenuIntf,
+     LCLType,
      Classes, Forms;
 
 type
 
  tLazExt_aBTF_ObjectInspector=class
-  {%region --- CodeExplorer Window IDECommand --------------------- /fold}
+  {%region --- CodeExplorer Window ToggleFormUnit --------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_001_}
   strict private
-   _IDECommand_OpnCEV_:TIDECommand; //< это комманда для открытия
-    procedure _IDECommand_OpnCEV_FIND_;
-    function  _IDECommand_OpnCEV_present_:boolean;
-    function  _IDECommand_OpnCEV_execute_:boolean;
+   _IDECommand_TFU_:TIDECommand; //< это комманда для открытия
+   _IDECommand_TFU_OnExecuteMethod_original:TNotifyEvent;    //< его событие
+    procedure _TFU_OnExecuteMethod_myCustom(Sender:TObject); //< моя подстава
+    procedure _TFU_rePlace_OnExecuteMethod(const ideCommand:TIDECommand);
+    procedure _TFU_reStore_OnExecuteMethod(const ideCommand:TIDECommand);
+  private
+    procedure _TFU_rePLACE;
   {$endIf}
   {%endRegion}
   {%region --- Active SourceEditorWindow -------------------------- /fold}
@@ -135,6 +146,11 @@ type
   strict private //< регистрация событий
     procedure _ideEvent_register_;
   {%endRegion}
+
+  protected
+    //procedure _IDECommand_TFU_:TIDECommand; //< это комманда для открытия    (Sender: TObject)
+    //procedure _aaaaaaaaa(Sender:TObject); //< моя подстава
+
   public
     constructor Create;
     destructor DESTROY; override;
@@ -156,7 +172,7 @@ const
 constructor tLazExt_aBTF_ObjectInspector.Create;
 begin
     {$ifDef _lazExt_aBTF_CodeExplorer_API_001_}
-   _IDECommand_OpnCEV_:=NIL;
+   _IDECommand_TFU_:=NIL;
     {$endIf}
     {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
    _ide_Window_CEV_:=NIL;
@@ -169,9 +185,74 @@ begin
     inherited;
 end;
 
+var CmdMyTool: TIDECommand;
+var tmp:TIDECommand;
+    cat:TIDECommandCategory;
+    Key:TIDEShortCut;
+
+procedure StartMyTool(Sender: TObject);
+var t:TClass;
+    s:string;
+begin
+(*  if Assigned(SourceEditorManagerIntf.ActiveSourceWindow)
+  and SourceEditorManagerIntf.ActiveSourceWindow.Focused then begin
+      //ShowMessage('ActiveSourceWindow');
+  end;
+
+  if Assigned(SourceEditorManagerIntf.ActiveEditor)  then begin
+      //ShowMessage('ActiveEditor');
+  end;
+*)
+   //Screen.ActiveForm;
+  //tmp.Execute(nil);
+
+  ShowMessage('ActiveEditor '+'OnExecute:'+addr2txt(@(tmp.OnExecute)));
+  ShowMessage('ActiveEditor '+'OnExecuteProc:'+addr2txt(@(tmp.OnExecuteProc)));
+
+(*    if Assigned(Screen.ActiveForm) and (not (Screen.ActiveForm is TSourceEditorWindowInterface)) then begin
+        s:='';
+        t:=Screen.ActiveForm.ClassParent;
+        while Assigned(t) do begin
+            s:=s+t.ClassName+#$0d#$0a;
+            t:=t.ClassParent;
+        end;
+        ShowMessage('ActiveEditor '+Screen.ActiveForm.Caption+':'+Screen.ActiveForm.ClassName+#$0d#$0a+s);
+    end;
+*)
+end;
+
+{procedure tLazExt_aBTF_ObjectInspector._aaaaaaaaa(Sender:TObject); //< моя подстава
+begin
+    ShowMessage('sdfgds fgs df');
+end; }
+
 procedure tLazExt_aBTF_ObjectInspector.RegisterInIdeLAZARUS;
 begin
+    _TFU_rePLACE;
+    (*
+
+    if _IDECommand_TFU_present_ then begin
+        Key := IDEShortCut(VK_F12,[],VK_UNKNOWN,[]);
+        CmdMyTool:=RegisterIDECommand(_IDECommand_TFU_.Category,_IDECommand_TFU_.LocalizedName,_IDECommand_TFU_.Name, Key, @_aaaaaaaaa, @StartMyTool);
+        tmp:=_IDECommand_TFU_;
+        //-------
+       //_IDECommand_TFU_.ClearShortcutA;
+       //_IDECommand_TFU_.ClearShortcutB;
+       // ShowMessage('ActiveEditor '+'OnExecute:'+addr2txt(_IDECommand_TFU_.OnExecute));
+       // ShowMessage('ActiveEditor '+'OnExecuteProc:'+addr2txt(_IDECommand_TFU_.OnExecuteProc)););
+    end;
+
+
+//   _IDECommand_TFU_FIND_;
+//    tmp:=IDECommandList.FindIDECommand(ecToggleFormUnit);
+//    tmp.ClearShortcutA;
+//    tmp.ClearShortcutB;
    //_ideEvent_register_;
+    //Cat:=IDECommandList.FindCategoryByName(CommandCategoryViewName{CommandCategoryToolMenuName});
+
+    RegisterIDEMenuCommand(mnuView{itmSecondaryTools}, CmdMyTool.LocalizedName, CmdMyTool.LocalizedName, nil, nil, CmdMyTool);
+
+    *)
 end;
 
 {%region --- CodeExplorer Window IDECommand ----------------------- /fold}
@@ -191,39 +272,90 @@ end;
 }
 
 const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
-  _c_IDECommand_OpnCE_IdeCODE=ecToggleCodeExpl;
+  _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
 
-procedure tLazExt_aBTF_ObjectInspector._IDECommand_OpnCEV_FIND_;
+procedure tLazExt_aBTF_ObjectInspector._TFU_rePLACE;
 begin
-   _IDECommand_OpnCEV_:=IDECommandList.FindIDECommand(_c_IDECommand_OpnCE_IdeCODE);
+   _IDECommand_TFU_:=IDECommandList.FindIDECommand(_c_IDECommand_TFU_IdeCODE);
+   _TFU_rePlace_OnExecuteMethod(_IDECommand_TFU_);
     {$ifDEF _EventLOG_}
-    if Assigned(_IDECommand_OpnCEV_)
-    then DEBUG('OK','IDECommand_OpnCEV "ToggleCodeExpl" FOUND')
-    else DEBUG('ER','IDECommand_OpnCEV "ToggleCodeExpl" NOT found')
+    if Assigned(_IDECommand_TFU_)
+    then DEBUG('OK','IDECommand_TFU "ToggleFormUnit" FOUND')
+    else DEBUG('ER','IDECommand_TFU "ToggleFormUnit" NOT found')
     {$endIf}
+end;
+
+//------------------------------------------------------------------------------
+
+// ЗАМЕНЯЕМ `OnExecuteMethod` на собственное
+procedure tLazExt_aBTF_ObjectInspector._TFU_rePlace_OnExecuteMethod(const ideCommand:TIDECommand);
+begin
+    if Assigned(ideCommand) and (ideCommand.OnExecute<>@_SEW_onDeactivate_myCustom) then begin
+       _IDECommand_TFU_OnExecuteMethod_original:=ideCommand.OnExecute;
+        ideCommand.OnExecute:=@_TFU_OnExecuteMethod_myCustom;
+        {$ifDEF _EventLOG_}
+        DEBUG('_TFU_rePlace_OnExecuteMethod','rePALCE ideCommand'+addr2txt(ideCommand));
+        ShowMessage(addr2txt(Addr(_IDECommand_TFU_OnExecuteMethod_original)));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_TFU_rePlace_OnExecuteMethod','SKIP ideCommand'+addr2txt(ideCommand));
+        {$endIf}
+    end
+end;
+
+// ВОСТАНАВЛИВАЕМ `OnExecuteMethod` на то что было
+procedure tLazExt_aBTF_ObjectInspector._TFU_reStore_OnExecuteMethod(const ideCommand:TIDECommand);
+begin
+    if Assigned(ideCommand) and (ideCommand.OnExecute=@_SEW_onDeactivate_myCustom) then begin
+        ideCommand.OnExecute:=_ide_Window_SEW_onDeactivate_original;
+       _IDECommand_TFU_OnExecuteMethod_original:=NIL;
+        {$ifDEF _EventLOG_}
+        DEBUG('_TFU_reStore_OnExecuteMethod','ideCommand'+addr2txt(ideCommand));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_TFU_reStore_OnExecuteMethod','SKIP ideCommand'+addr2txt(ideCommand));
+        {$endIf}
+    end;
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-function tLazExt_aBTF_ObjectInspector._IDECommand_OpnCEV_present_:boolean;
+{function tLazExt_aBTF_ObjectInspector._IDECommand_TFU_present_:boolean;
 begin
-    result:=Assigned(_IDECommand_OpnCEV_);
+    result:=Assigned(_IDECommand_TFU_);
     if not result then begin
-       _IDECommand_OpnCEV_FIND_;
-        result:=Assigned(_IDECommand_OpnCEV_);
+       _IDECommand_TFU_FIND_;
+        result:=Assigned(_IDECommand_TFU_);
     end;
-end;
+end;}
 
-function tLazExt_aBTF_ObjectInspector._IDECommand_OpnCEV_execute_:boolean;
+{function tLazExt_aBTF_ObjectInspector._IDECommand_TFU_execute_:boolean;
 begin
-    if _IDECommand_OpnCEV_present_ then begin
-        result:=_IDECommand_OpnCEV_.Execute(nil);
+    if _IDECommand_TFU_present_ then begin
+        result:=_IDECommand_TFU_.Execute(nil);
         {$ifDEF _EventLOG_}
         if result then DEBUG('OK','IDECommand_OpnCEV.execute')
                   else DEBUG('ER','IDECommand_OpnCEV.execute');
         {$endIf}
     end
+end;}
+
+procedure tLazExt_aBTF_ObjectInspector._TFU_OnExecuteMethod_myCustom(Sender:TObject); //< моя подстава
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('GOGOGO');
+    {$endIf}
+    if Assigned(_IDECommand_TFU_OnExecuteMethod_original) then begin
+       _IDECommand_TFU_OnExecuteMethod_original(Sender);
+    end;
+    ShowMessage('GOGOGO');
 end;
+
+
 
 {$endIf}
 
@@ -333,11 +465,11 @@ end;
 {%region --- ВСЯ СУТь --------------------------------------------- /fold}
 
 {$ifDef _lazExt_aBTF_CodeExplorer_API_002_}
-
+(*
 // открыть и вытащить на передний план окно `CodeExplorerView`
 function tLazExt_aBTF_ObjectInspector._do_BTF_CodeExplorer_do_wndCE_OPN:boolean;
 begin
-    result:=_IDECommand_OpnCEV_present_ and _IDECommand_OpnCEV_execute_;
+    result:=_IDECommand_TFU_present_ and _IDECommand_TFU_execute_;
 end;
 
 // переместить на передний план окно `ActiveSourceWindow`
@@ -359,7 +491,7 @@ begin
         {$endIf}
     end;
 end;
-
+*)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function tLazExt_aBTF_ObjectInspector._do_BTF_CodeExplorer_use_ideLaz:boolean;
@@ -409,7 +541,7 @@ begin
     {$ifDef lazExt_aBTF_CodeExplorer_WinAPI_mode}
         result:=_do_BTF_CodeExplorer_use_winAPI;
     {$else} //< "стандартными" средствами IDE lazarus
-        result:=_do_BTF_CodeExplorer_use_ideLaz;
+    //    result:=_do_BTF_CodeExplorer_use_ideLaz;
     {$endIf}
     {$ifDEF _EventLOG_}
     if result then DEBUG('BTF_CodeExplorer','OK')
@@ -580,7 +712,7 @@ begin
         // вызываем окно `CodeExplorerView`, оно встанет на ПЕРЕДНИЙ план
         // все это приводит к излишним дерганиям и как-то через Ж.
        _SEW_reStore_onDeactivate(_ide_Window_SEW_);
-       _IDECommand_OpnCEV_execute_;
+       _IDECommand_TFU_execute_;
        _SEW_rePlace_onDeactivate(_ide_Window_SEW_);
         // теперь сного его поисчем
         result:=_CEV_find_;

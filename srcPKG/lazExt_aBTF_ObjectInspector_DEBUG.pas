@@ -39,7 +39,7 @@ function  addr2txt(const p:pointer):string; inline;
 
 implementation
 
-const _c_WndDBG_Caption_='[eventLog] lazExt_BTF_ObjectInspector';
+const _c_WndDBG_Caption_='[eventLog] lazExt_aBTF_ObjectInspector';
 
 //==============================================================================
 

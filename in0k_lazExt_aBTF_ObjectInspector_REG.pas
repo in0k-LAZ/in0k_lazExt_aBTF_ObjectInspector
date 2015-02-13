@@ -6,7 +6,7 @@ interface
 
 {$I in0k_lazExt_aBTF_ObjectInspector_INI.inc}
 
-uses {$ifDef lazExt_aBTF_CodeExplorer_EventLOG_mode}lazExt_aBTF_ObjectInspector_DEBUG,{$endIf}
+uses {$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}lazExt_aBTF_ObjectInspector_DEBUG,{$endIf}
      lazExt_aBTF_ObjectInspector;
 
 procedure REGISTER;
@@ -19,8 +19,8 @@ procedure REGISTER;
 begin
    _aBTF_CodeExplorer_:=tLazExt_aBTF_ObjectInspector.Create;
    _aBTF_CodeExplorer_.RegisterInIdeLAZARUS;
-    {$ifDef lazExt_aBTF_CodeExplorer_EventLOG_mode}
-    lazExt_aBTF_ObjectInspector.RegisterInIdeLAZARUS;
+    {$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}
+    lazExt_aBTF_ObjectInspector_DEBUG.RegisterInIdeLAZARUS;
     {$endIf}
 end;
 

@@ -8,7 +8,7 @@
 // определяем режим ДЕБАГ
 //  Позволяет просматривать лог событий в отдельном окне из IDE
 //  View -> IDE Internals -> [eventLog] lazExt_BTF_CodeExplorer
-{$define lazExt_aBTF_CodeExplorer_EventLOG_mode}
+{$define lazExt_aBTF_ObjectInspector_EventLOG_mode}
 
 // Режим работы через winApi.
 //  Позволяет "вытягивать" окно CodeExplorer на ПЕРД топ позицию, что позволяет
