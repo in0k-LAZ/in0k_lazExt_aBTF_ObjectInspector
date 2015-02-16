@@ -74,8 +74,8 @@ uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
      {$ifDEF lazExt_aBTF_CodeExplorer_WinAPI_mode}
         windows, Controls,
      {$endIf}
-     SrcEditorIntf, IDECommands, MenuIntf,
-     LCLType,
+     SrcEditorIntf, IDECommands, MenuIntf,  FormEditingIntf,
+     LCLType, PropEdits, ProjectIntf, LazIDEIntf, ComponentEditors,
      Classes, Forms;
 
 type
@@ -148,17 +148,50 @@ type
   {%endRegion}
 
   protected
+    procedure myFNC;
+  protected
+  // _ideMenu_TFUV_:TIDEMenuCommand;
+   _ideMenuITM_TFUV_onClick_original_:TNotifyEvent;
+    procedure _TFUV_onClick_myCustom_(Sender:TObject); //< моя подстава
+    procedure _TFUV_onClick_rePlace(const ideMenuItem:TIDEMenuCommand);
+  public
     //procedure _IDECommand_TFU_:TIDECommand; //< это комманда для открытия    (Sender: TObject)
     //procedure _aaaaaaaaa(Sender:TObject); //< моя подстава
-
+    //function enumerate_menuItem:boolean;
+    //function enumerate_menuItemITEM(const ideMenuITEM:TIDEMenuSection):boolean;
+    function _ideMenu_find_inSection(const ideCommand:TIDECommand; ideMenuSection:TIDEMenuSection):TIDEMenuCommand;
+    function _ideMenu_find_         (const ideCommand:TIDECommand):TIDEMenuCommand;
   public
     constructor Create;
     destructor DESTROY; override;
   public
+    procedure _onRegister_ideMenuITM_TFUV;
+  public
+   _ide_Window_DSGNR_:TCustomForm;
+   _ide_Window_DSGNR_onActivate_original_:TNotifyEvent;
+    procedure _DSGNR_onActivate_myCustom_(Sender:TObject);
+    procedure _DSGNR_rePlace_onActivate_(const wnd:TCustomForm);
+    procedure _DSGNR_reStore_onActivate_(const wnd:TCustomForm);
+    procedure _DSGNR_SET_(const wnd:TCustomForm);
+    //_ideWindow_DSGNR_onDeActivate_original_:TNotifyEvent;
+
+    procedure _PropHookChangeLookupRoot_;
     procedure RegisterInIdeLAZARUS;
   end;
 
 implementation
+
+const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
+  _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
+
+
+procedure tLazExt_aBTF_ObjectInspector. myFNC;
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('GOGOGO','----------------------------------------------------------');
+    {$endIf}
+end;
+
 
 {$ifDEF _EventLOG_}
 const
@@ -177,7 +210,10 @@ begin
     {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
    _ide_Window_CEV_:=NIL;
     {$endIf}
-   _ide_Window_SEW_:=NIL;
+    _ideMenuITM_TFUV_onClick_original_:=nil;
+    _ide_Window_SEW_:=NIL;
+    _ide_Window_DSGNR_:=nil;
+    _ide_Window_DSGNR_onActivate_original_:=nil;
 end;
 
 destructor tLazExt_aBTF_ObjectInspector.DESTROY;
@@ -226,9 +262,45 @@ begin
     ShowMessage('sdfgds fgs df');
 end; }
 
+
+procedure tLazExt_aBTF_ObjectInspector._onRegister_ideMenuITM_TFUV;
+var tmp:TIDECommand;
+    tmq:TIDEMenuCommand;
+begin
+    tmp:=IDECommandList.FindIDECommand(_c_IDECommand_TFU_IdeCODE);
+    if Assigned(tmp) then begin
+        tmq:=_ideMenu_find_(tmp);
+        if Assigned(tmq) then begin
+           _TFUV_onClick_rePlace(tmq);
+        end;
+    end;
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._PropHookChangeLookupRoot_;
+var tmp:TPersistent;
+    wnd:TCustomForm;
+begin
+    tmp:= GlobalDesignHook.LookupRoot;
+    if Assigned(tmp) then begin
+        wnd:=FormEditingHook.GetDesignerForm(tmp);
+        if Assigned(wnd) then begin
+           //ShowMessage('qw' + wnd.Caption);
+          _DSGNR_SET_(wnd);
+        end;
+
+    end;
+end;
+
 procedure tLazExt_aBTF_ObjectInspector.RegisterInIdeLAZARUS;
 begin
-    _TFU_rePLACE;
+   // _TFU_rePLACE;
+   //_ideEvent_register_;
+   // _onRegister_ideMenuITM_TFUV;
+
+     GlobalDesignHook.AddHandlerChangeLookupRoot(@_PropHookChangeLookupRoot_);
+    // FormEditingHook.
+
+     //es
     (*
 
     if _IDECommand_TFU_present_ then begin
@@ -271,16 +343,14 @@ end;
     это конечноже через ЗАДНИЦА.
 }
 
-const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
-  _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
-
+                          //  itmViewToggleFormUnit
 procedure tLazExt_aBTF_ObjectInspector._TFU_rePLACE;
 begin
    _IDECommand_TFU_:=IDECommandList.FindIDECommand(_c_IDECommand_TFU_IdeCODE);
    _TFU_rePlace_OnExecuteMethod(_IDECommand_TFU_);
     {$ifDEF _EventLOG_}
     if Assigned(_IDECommand_TFU_)
-    then DEBUG('OK','IDECommand_TFU "ToggleFormUnit" FOUND')
+    then DEBUG('OK','IDECommand_TFU "ToggleFormUnit" FOUND'+addr2txt(pointer(_IDECommand_TFU_)))
     else DEBUG('ER','IDECommand_TFU "ToggleFormUnit" NOT found')
     {$endIf}
 end;
@@ -289,13 +359,24 @@ end;
 
 // ЗАМЕНЯЕМ `OnExecuteMethod` на собственное
 procedure tLazExt_aBTF_ObjectInspector._TFU_rePlace_OnExecuteMethod(const ideCommand:TIDECommand);
+var p:pointer;
 begin
     if Assigned(ideCommand) and (ideCommand.OnExecute<>@_SEW_onDeactivate_myCustom) then begin
+        {$ifDEF _EventLOG_}
+        p:=@(ideCommand.OnExecute);
+        DEBUG('befo','ideCommand.OnExecute'+addr2txt(pointer(p^)));
+        p:=@(ideCommand.OnExecuteProc);
+        DEBUG('befo','ideCommand.OnExecuteProc'+addr2txt(pointer(p^)));
+        {$endIf}
        _IDECommand_TFU_OnExecuteMethod_original:=ideCommand.OnExecute;
         ideCommand.OnExecute:=@_TFU_OnExecuteMethod_myCustom;
         {$ifDEF _EventLOG_}
         DEBUG('_TFU_rePlace_OnExecuteMethod','rePALCE ideCommand'+addr2txt(ideCommand));
-        ShowMessage(addr2txt(Addr(_IDECommand_TFU_OnExecuteMethod_original)));
+        //ShowMessage(addr2txt(Addr(_IDECommand_TFU_OnExecuteMethod_original)));
+        p:=@(ideCommand.OnExecute);
+        DEBUG('afte','ideCommand.OnExecute'+addr2txt(pointer(p^)));
+        p:=@(ideCommand.OnExecuteProc);
+        DEBUG('afte','ideCommand.OnExecuteProc'+addr2txt(pointer(p^)));
         {$endIf}
     end
     else begin
@@ -349,9 +430,9 @@ begin
     {$ifDEF _EventLOG_}
     DEBUG('GOGOGO');
     {$endIf}
-    if Assigned(_IDECommand_TFU_OnExecuteMethod_original) then begin
-       _IDECommand_TFU_OnExecuteMethod_original(Sender);
-    end;
+    //if Assigned(_IDECommand_TFU_OnExecuteMethod_original) then begin
+    // /  _IDECommand_TFU_OnExecuteMethod_original(Sender);
+    //end;
     ShowMessage('GOGOGO');
 end;
 
@@ -452,7 +533,6 @@ begin
            _SEW_reStore_onDeactivate(_ide_Window_SEW_);
             {$ifDEF _EventLOG_}
             DEBUG('ERROR','_SEW_SET inline var _ide_Window_SEW_<>NIL');
-            ShowMessage('_SEW_SET inline var _ide_Window_SEW_<>NIL'+_cPleaseReport_);
             {$endIf}
         end;
        _SEW_rePlace_onDeactivate(wnd);
@@ -826,9 +906,170 @@ end;
 procedure tLazExt_aBTF_ObjectInspector._ideEvent_register_;
 begin
     SourceEditorManagerIntf.RegisterChangeEvent(semWindowFocused,  @_ideEvent_semWindowFocused);
-    SourceEditorManagerIntf.RegisterChangeEvent(semEditorActivate, @_ideEvent_semEditorActivate);
+    //SourceEditorManagerIntf.RegisterChangeEvent(semEditorActivate, @_ideEvent_semEditorActivate);
 end;
 
 {%endRegion}
+
+
+function tLazExt_aBTF_ObjectInspector._ideMenu_find_inSection(const ideCommand:TIDECommand; ideMenuSection:TIDEMenuSection):TIDEMenuCommand;
+var i:integer;
+  tmp:TIDEMenuItem;
+begin
+    result:=nil;
+    for i:=0 to ideMenuSection.Count-1 do begin
+        tmp:=ideMenuSection.Items[i];
+        if not Assigned(tmp) then begin end
+       else
+        if tmp is TIDEMenuCommand then begin
+            if TIDEMenuCommand(tmp).Command=ideCommand then begin
+                result:=TIDEMenuCommand(tmp);
+                BREAK;
+            end;
+        end
+       else
+        if tmp is TIDEMenuSection then begin
+            result:=_ideMenu_find_inSection(ideCommand,TIDEMenuSection(tmp));
+            if Assigned(result) then BREAK;
+        end;
+    end;
+end;
+
+function tLazExt_aBTF_ObjectInspector._ideMenu_find_(const ideCommand:TIDECommand):TIDEMenuCommand;
+var i:integer;
+  tmp:TIDEMenuItem;
+begin
+    result:=nil;
+    for i:=0 to IDEMenuRoots.Count-1 do begin
+        tmp:=IDEMenuRoots.Items[i];
+        if not Assigned(tmp) then begin end
+       else
+        if tmp is TIDEMenuSection then begin
+            result:=_ideMenu_find_inSection(ideCommand,TIDEMenuSection(tmp));
+            if Assigned(result) then BREAK;
+        end;
+    end;
+end;
+
+procedure  tLazExt_aBTF_ObjectInspector._TFUV_onClick_myCustom_(Sender:TObject);
+begin
+    if Assigned(_ideMenuITM_TFUV_onClick_original_) then begin
+      _ideMenuITM_TFUV_onClick_original_(Sender);
+       {$ifDEF _EventLOG_}
+       DEBUG('EXECUTE','ideMenuITM_TFUV_onClick_original processed');
+       {$endIf}
+    end;
+    myFNC;
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._TFUV_onClick_rePlace(const ideMenuItem:TIDEMenuCommand);
+begin
+    if Assigned(ideMenuItem) then begin
+      _ideMenuITM_TFUV_onClick_original_:=ideMenuItem.OnClick;
+       ideMenuItem.OnClick:=@_TFUV_onClick_myCustom_;
+       {$ifDEF _EventLOG_}
+       DEBUG('replace','TFUV_onClick');
+       {$endIf}
+    end;
+end;
+
+(*function tLazExt_aBTF_ObjectInspector.enumerate_menuItemITEM(const ideMenuITEM:TIDEMenuSection):boolean;
+var i:integer;
+  tmp:TIDEMenuItem;
+begin
+    for i:=0 to ideMenuITEM.Count-1 do begin
+        tmp:=ideMenuITEM.Items[i];
+//        DEBUG('MENU_i',tmp.Name);
+
+        if tmp is TIDEMenuCommand then begin
+
+            //TIDEMenuCommand(tmp).Name;
+            if TIDEMenuCommand(tmp).Command =  _IDECommand_TFU_ then begin
+                DEBUG('MENU_C',tmp.Name+addr2txt(TIDEMenuCommand(tmp).Command));
+            end;
+
+           //TIDEMenuCommand(tmp).Command.
+        end;
+
+        if tmp is TIDEMenuSection then begin
+            //DEBUG('MENU_III',tmp.Name);
+            enumerate_menuItemITEM(TIDEMenuSection(tmp));
+        end;
+    end;
+end;   *)
+
+ (*
+function tLazExt_aBTF_ObjectInspector.enumerate_menuItem:boolean;
+var i:integer;
+    ideMenuSection:TIDEMenuSection;
+begin
+   // if _IDECommand_TFU_<>nil then begin
+        for i:=0 to IDEMenuRoots.Count-1 do begin
+            ideMenuSection:=IDEMenuRoots.Items[i];
+            DEBUG('MENU_S',ideMenuSection.Name);
+            enumerate_menuItemITEM(ideMenuSection);
+        end;
+   // end;
+//    Items[Index: integer]: TIDEMenuSection
+end; *)
+
+//_ide_Window_DSGNR_:TCustomForm;
+//_ide_Window_DSGNR_onActivate_original_:TNotifyEvent;
+procedure tLazExt_aBTF_ObjectInspector._DSGNR_onActivate_myCustom_(Sender:TObject);
+begin
+    if Assigned(_ide_Window_DSGNR_onActivate_original_) then begin
+      _ide_Window_DSGNR_onActivate_original_(sender);
+       {$ifDEF _EventLOG_}
+       DEBUG('DSGNR','onActivate_original');
+       {$endIf}
+    end;
+    myFNC;
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._DSGNR_rePlace_onActivate_(const wnd:TCustomForm);
+begin
+    if Assigned(wnd) and (wnd.OnActivate<>@_DSGNR_onActivate_myCustom_) then begin
+       _ide_Window_DSGNR_onActivate_original_:=wnd.OnActivate;
+        wnd.OnActivate:=@_DSGNR_onActivate_myCustom_;
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_rePlace_onActivate_','rePALCE wnd'+addr2txt(wnd));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_rePlace_onActivate_','SKIP wnd'+addr2txt(wnd));
+        {$endIf}
+    end
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._DSGNR_reStore_onActivate_(const wnd:TCustomForm);
+begin
+    if Assigned(wnd) and (wnd.OnActivate=@_DSGNR_onActivate_myCustom_) then begin
+        wnd.OnActivate:=_ide_Window_DSGNR_onActivate_original_;
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_reStore_onActivate_','reSTORE wnd'+addr2txt(wnd));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_reStore_onActivate_','SKIP wnd'+addr2txt(wnd));
+        {$endIf}
+    end;
+   _ide_Window_DSGNR_onActivate_original_:=NIL;
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._DSGNR_SET_(const wnd:TCustomForm);
+begin
+    if _ide_Window_DSGNR_<>wnd then begin
+        if Assigned(_ide_Window_DSGNR_) then begin
+           _DSGNR_reStore_onActivate_(_ide_Window_DSGNR_);
+        end;
+       _ide_Window_DSGNR_:=wnd;
+        if Assigned(_ide_Window_DSGNR_) then begin
+           _DSGNR_rePlace_onActivate_(_ide_Window_DSGNR_);
+        end;
+    end;
+end;
+
 
 end.
