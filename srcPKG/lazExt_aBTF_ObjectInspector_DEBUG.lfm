@@ -1,7 +1,7 @@
 object lazExt_aBTF_ObjectInspector_wndDBG: TlazExt_aBTF_ObjectInspector_wndDBG
-  Left = 379
+  Left = 825
   Height = 240
-  Top = 129
+  Top = 171
   Width = 320
   ClientHeight = 240
   ClientWidth = 320

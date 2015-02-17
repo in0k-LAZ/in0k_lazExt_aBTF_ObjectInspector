@@ -67,13 +67,15 @@ interface
 {$undef _lazExt_aBTF_CodeExplorer_API_004_}
 {$undef _lazExt_aBTF_CodeExplorer_API_005_}
 
+{.$define _lazExt_aBTF_CodeExplorer_API_004_}
+{$define _lazExt_aBTF_CodeExplorer_API_005_}
 
 uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
         sysutils, Dialogs, lazExt_aBTF_ObjectInspector_DEBUG,
      {$endIf}
      {$ifDEF lazExt_aBTF_CodeExplorer_WinAPI_mode}
         windows, Controls,
-     {$endIf}
+     {$endIf}  ObjectInspector,
      SrcEditorIntf, IDECommands, MenuIntf,  FormEditingIntf,
      LCLType, PropEdits, ProjectIntf, LazIDEIntf, ComponentEditors,
      Classes, Forms;
@@ -119,11 +121,11 @@ type
   {%region --- ide_Window_CEV : API_004 --------------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
   strict private
-   _ide_Window_CEV_:tForm;                        //< найденное окно
-   _ide_Window_CEV_onClose_original_:TCloseEvent; //< его событие при выходе
-    procedure _CEV_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
-    procedure _CEV_rePlace_onClose(const wnd:tForm);
-    procedure _CEV_reStore_onClose(const wnd:tForm);
+   _ide_Window_OIV_:tForm;                        //< найденное окно
+   _ide_Window_OIV_onClose_original_:TCloseEvent; //< его событие при выходе
+    procedure _OIV_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
+    procedure _OIV_rePlace_onClose(const wnd:tForm);
+    procedure _OIV_reStore_onClose(const wnd:tForm);
   private
     procedure _CEV_SET_(const wnd:tForm);
   {$endIf}
@@ -131,10 +133,10 @@ type
   {%region --- ide_Window_CEV : API_005 --------------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
   strict private
-    function  _CEV_find_inSCREEN:TForm;
-    function  _CEV_find_:TForm;
+    function  _OIV_find_inSCREEN_:TForm;
+    function  _OIV_find_:TForm;
   private
-    function  _CEV_GET:TForm;
+    function  _OIV_GET:TForm;
   {$endIf}
   {%endRegion}
   {%region --- IdeEVENT ------------------------------------------- /fold}
@@ -167,8 +169,11 @@ type
   public
     procedure _onRegister_ideMenuITM_TFUV;
   public
+   _ide_Applctn_Lazarus_onActivate_original_:{pointer;//}TNotifyEvent;
+    procedure  _Lazarus_onActivate_myCustom_(Sender:TObject);
+  public
    _ide_Window_DSGNR_:TCustomForm;
-   _ide_Window_DSGNR_onActivate_original_:TNotifyEvent;
+   _ide_Window_DSGNR_onActivate_original_:{pointer;//}TNotifyEvent;
     procedure _DSGNR_onActivate_myCustom_(Sender:TObject);
     procedure _DSGNR_rePlace_onActivate_(const wnd:TCustomForm);
     procedure _DSGNR_reStore_onActivate_(const wnd:TCustomForm);
@@ -185,11 +190,15 @@ const //< тут возможно придется определять отно
   _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
 
 
-procedure tLazExt_aBTF_ObjectInspector. myFNC;
+procedure tLazExt_aBTF_ObjectInspector.myFNC;
 begin
     {$ifDEF _EventLOG_}
     DEBUG('GOGOGO','----------------------------------------------------------');
     {$endIf}
+
+    _OIV_GET.BringToFront;
+
+
 end;
 
 
@@ -208,7 +217,7 @@ begin
    _IDECommand_TFU_:=NIL;
     {$endIf}
     {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-   _ide_Window_CEV_:=NIL;
+   _ide_Window_OIV_:=NIL;
     {$endIf}
     _ideMenuITM_TFUV_onClick_original_:=nil;
     _ide_Window_SEW_:=NIL;
@@ -298,6 +307,10 @@ begin
    // _onRegister_ideMenuITM_TFUV;
 
      GlobalDesignHook.AddHandlerChangeLookupRoot(@_PropHookChangeLookupRoot_);
+
+    _ide_Applctn_Lazarus_onActivate_original_:=Application.OnActivate;
+     Application.OnActivate:=@_Lazarus_onActivate_myCustom_;
+
     // FormEditingHook.
 
      //es
@@ -597,7 +610,7 @@ function tLazExt_aBTF_ObjectInspector._do_BTF_CodeExplorer_use_winAPI:boolean;
 var dwp:HDWP;
     cev:tForm;
 begin
-    cev:=_CEV_GET;
+    cev:=_OIV_GET;
     if Assigned(cev) and Assigned(_ide_Window_SEW_) then begin
         dwp:=BeginDeferWindowPos(1);
         DeferWindowPos(dwp,cev.Handle,_ide_Window_SEW_.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
@@ -607,7 +620,7 @@ begin
         result:=false;
         {$ifDEF _EventLOG_}
         if not Assigned(_ide_Window_SEW_) then DEBUG('EVENT','_ide_Window_SEW_==nil');
-        if not Assigned(cev)              then DEBUG('EVENT','_ide_Window_CEV_==nil');
+        if not Assigned(cev)              then DEBUG('EVENT','_ide_Window_OIV_==nil');
         {$endIf}
     end;
 end;
@@ -635,19 +648,19 @@ end;
 
 {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
 
-procedure tLazExt_aBTF_ObjectInspector._CEV_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
+procedure tLazExt_aBTF_ObjectInspector._OIV_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
 begin
     {$ifDEF _EventLOG_}
-    DEBUG('_CEV_onClose_myCustom_','--->>> Sender'+addr2txt(Sender));
+    DEBUG('_OIV_onClose_myCustom_','--->>> Sender'+addr2txt(Sender));
     {$endIf}
 
-    if Sender=_ide_Window_CEV_ then begin
+    if Sender=_ide_Window_OIV_ then begin
         // отмечаем что ВЫШЛИ из окна
-       _ide_Window_CEV_:=NIL;
+       _ide_Window_OIV_:=NIL;
         // восстановить событие `onDeactivate` на исходное, и выполнияем его
         if Assigned(Sender) then begin
             if Sender is TForm then begin
-               _CEV_reStore_onClose(tForm(Sender));
+               _OIV_reStore_onClose(tForm(Sender));
                 with tForm(Sender) do begin
                     if Assigned(OnClose) then OnClose(Sender,CloseAction);
                     {$ifDEF _EventLOG_}
@@ -669,45 +682,45 @@ begin
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('ER','Sender<>_ide_Window_CEV_');
+        DEBUG('ER','Sender<>_ide_Window_OIV_');
         {$endIf}
     end;
 
     {$ifDEF _EventLOG_}
-    DEBUG('_CEV_onClose_myCustom_','---<<<');
+    DEBUG('_OIV_onClose_myCustom_','---<<<');
     {$endIf}
 end;
 
 //------------------------------------------------------------------------------
 
-procedure tLazExt_aBTF_ObjectInspector._CEV_rePlace_onClose(const wnd:tForm);
+procedure tLazExt_aBTF_ObjectInspector._OIV_rePlace_onClose(const wnd:tForm);
 begin
-    if Assigned(wnd) and (wnd.OnClose<>@_CEV_onClose_myCustom_) then begin
-       _ide_Window_CEV_onClose_original_:=wnd.OnClose;
-        wnd.OnClose:=@_CEV_onClose_myCustom_;
+    if Assigned(wnd) and (wnd.OnClose<>@_OIV_onClose_myCustom_) then begin
+       _ide_Window_OIV_onClose_original_:=wnd.OnClose;
+        wnd.OnClose:=@_OIV_onClose_myCustom_;
         {$ifDEF _EventLOG_}
-        DEBUG('_CEV_rePlace_onClose','rePALCE wnd'+addr2txt(wnd));
+        DEBUG('_OIV_rePlace_onClose','rePALCE wnd'+addr2txt(wnd));
         {$endIf}
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_CEV_rePlace_onClose','SKIP wnd'+addr2txt(wnd));
+        DEBUG('_OIV_rePlace_onClose','SKIP wnd'+addr2txt(wnd));
         {$endIf}
     end
 end;
 
-procedure tLazExt_aBTF_ObjectInspector._CEV_reStore_onClose(const wnd:tForm);
+procedure tLazExt_aBTF_ObjectInspector._OIV_reStore_onClose(const wnd:tForm);
 begin
-    if Assigned(wnd) and (wnd.OnClose=@_CEV_onClose_myCustom_) then begin
-        wnd.OnClose:=_ide_Window_CEV_onClose_original_;
-       _ide_Window_CEV_onClose_original_:=NIL;
+    if Assigned(wnd) and (wnd.OnClose=@_OIV_onClose_myCustom_) then begin
+        wnd.OnClose:=_ide_Window_OIV_onClose_original_;
+       _ide_Window_OIV_onClose_original_:=NIL;
         {$ifDEF _EventLOG_}
-        DEBUG('_CEV_reStore_onClose','wnd'+addr2txt(wnd));
+        DEBUG('_OIV_reStore_onClose','wnd'+addr2txt(wnd));
         {$endIf}
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_CEV_reStore_onClose','SKIP wnd'+addr2txt(wnd));
+        DEBUG('_OIV_reStore_onClose','SKIP wnd'+addr2txt(wnd));
         {$endIf}
     end;
 end;
@@ -716,17 +729,17 @@ end;
 
 procedure tLazExt_aBTF_ObjectInspector._CEV_SET_(const wnd:tForm);
 begin
-    if wnd<>_ide_Window_CEV_ then begin
-        if Assigned(_ide_Window_CEV_)
+    if wnd<>_ide_Window_OIV_ then begin
+        if Assigned(_ide_Window_OIV_)
         then begin
-           _CEV_reStore_onClose(_ide_Window_CEV_);
+           _OIV_reStore_onClose(_ide_Window_OIV_);
             {$ifDEF _EventLOG_}
-            DEBUG('ERROR','_CEV_SET_ inline var _ide_Window_CEV_==NIL');
+            DEBUG('ERROR','_CEV_SET_ inline var _ide_Window_OIV_==NIL');
             ShowMessage('_SEW_SET inline var _ide_Window_SEW_<>NIL'+_cPleaseReport_);
             {$endIf}
         end;
-       _CEV_rePlace_onClose(wnd);
-       _ide_Window_CEV_:=wnd;
+       _OIV_rePlace_onClose(wnd);
+       _ide_Window_OIV_:=wnd;
     end;
 end;
 
@@ -739,9 +752,9 @@ end;
 {$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
 
 const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
-  cWndCEV_className='TCodeExplorerView';
+  cWndOIV_className='TObjectInspectorDlg';
 
-function tLazExt_aBTF_ObjectInspector._CEV_find_inSCREEN:TForm;
+function tLazExt_aBTF_ObjectInspector._OIV_find_inSCREEN_:TForm;
 var i:integer;
     f:TForm;
 begin
@@ -749,12 +762,12 @@ begin
     for i:=0 to Screen.FormCount-1 do begin
         f:=Screen.Forms[i];
         {$ifDEF _EventLOG_}
-        DEBUG('CEV','Find in SCREEN '+f.ClassName);
+        DEBUG('_OIV_find_inSCREEN','Find in SCREEN '+f.ClassName);
         {$endIf}
-        if f.ClassNameIs(cWndCEV_className) then begin
+        if f is TObjectInspectorDlg then begin
             result:=f;
             {$ifDEF _EventLOG_}
-            DEBUG('CEV','FOUND '+cWndCEV_className+addr2txt(f));
+            DEBUG('_OIV_find_inSCREEN','FOUND '+cWndOIV_className+addr2txt(f));
             {$endIf}
             break;
         end;
@@ -764,26 +777,26 @@ end;
 
 // исчем ЭКЗЕМПЛЯР окна
 //  поиск по ИМЕНИ класса в хранилище открытых окон `Screen.Form`
-function tLazExt_aBTF_ObjectInspector._CEV_find_:TForm;
+function tLazExt_aBTF_ObjectInspector._OIV_find_:TForm;
 begin
     {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-    if not Assigned(_ide_Window_CEV_) then begin
-        result:=_CEV_find_inSCREEN;
+    if not Assigned(_ide_Window_OIV_) then begin
+        result:=_OIV_find_inSCREEN;
        _CEV_SET_(result);
     end
     else begin
-        result:=_ide_Window_CEV_;
+        result:=_ide_Window_OIV_;
     end;
     {$else}
-    result:=_CEV_find_inSCREEN;
+    result:=_OIV_find_inSCREEN_;
     {$endIf}
 end;
 
 //------------------------------------------------------------------------------
 
-function tLazExt_aBTF_ObjectInspector._CEV_GET:TForm;
+function tLazExt_aBTF_ObjectInspector._OIV_GET:TForm;
 begin
-    result:=_CEV_find_;
+    result:=_OIV_find_;
     {$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
     if (not Assigned(result))or(not result.Visible) then begin
         {$ifDEF _EventLOG_}
@@ -795,11 +808,11 @@ begin
        _IDECommand_TFU_execute_;
        _SEW_rePlace_onDeactivate(_ide_Window_SEW_);
         // теперь сного его поисчем
-        result:=_CEV_find_;
+        result:=_OIV_find_;
         {$ifDEF _EventLOG_}
         if not Assigned(result) then begin
-            DEBUG('CEV','NOT FOUND !!! BIG ERROR: possible name "'+cWndCEV_className+'" is WRONG');
-            ShowMessage('_CEV_GET:NOT FOUND !!! BIG ERROR: possible name "'+cWndCEV_className+'" is WRONG'+_cPleaseReport_);
+            DEBUG('CEV','NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG');
+            ShowMessage('_OIV_GET:NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG'+_cPleaseReport_);
         end;
         {$endIf}
     end;
@@ -1032,12 +1045,12 @@ begin
        _ide_Window_DSGNR_onActivate_original_:=wnd.OnActivate;
         wnd.OnActivate:=@_DSGNR_onActivate_myCustom_;
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePlace_onActivate_','rePALCE wnd'+addr2txt(wnd));
+        DEBUG('_DSGNR_rePALCE_onActivate_','wnd'+addr2txt(wnd)+' '+addr2txt(pointer((@_ide_Window_DSGNR_onActivate_original_)^))+ '->'+addr2txt(pointer((@wnd.OnActivate)^)));
         {$endIf}
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePlace_onActivate_','SKIP wnd'+addr2txt(wnd));
+        DEBUG('_DSGNR_rePALCE_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+addr2txt(pointer((@wnd.OnActivate)^)));
         {$endIf}
     end
 end;
@@ -1045,14 +1058,14 @@ end;
 procedure tLazExt_aBTF_ObjectInspector._DSGNR_reStore_onActivate_(const wnd:TCustomForm);
 begin
     if Assigned(wnd) and (wnd.OnActivate=@_DSGNR_onActivate_myCustom_) then begin
-        wnd.OnActivate:=_ide_Window_DSGNR_onActivate_original_;
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_reStore_onActivate_','reSTORE wnd'+addr2txt(wnd));
+        DEBUG('_DSGNR_reSTORE_onActivate_','wnd'+addr2txt(wnd)+' '+addr2txt(pointer((@wnd.OnActivate)^))+'->'+addr2txt(pointer((@_ide_Window_DSGNR_onActivate_original_)^)));
         {$endIf}
+        wnd.OnActivate:=_ide_Window_DSGNR_onActivate_original_;
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_reStore_onActivate_','SKIP wnd'+addr2txt(wnd));
+        DEBUG('_DSGNR_reSTORE_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+addr2txt(pointer((@wnd.OnActivate)^)));
         {$endIf}
     end;
    _ide_Window_DSGNR_onActivate_original_:=NIL;
@@ -1071,5 +1084,14 @@ begin
     end;
 end;
 
+
+procedure tLazExt_aBTF_ObjectInspector._Lazarus_onActivate_myCustom_(Sender:TObject);
+begin
+   {$ifDEF _EventLOG_}
+   DEBUG('_Lazarus_onActivate_myCustom_','_Lazarus_onActivate_myCustom_');
+   {$endIf}
+   if Assigned(_ide_Applctn_Lazarus_onActivate_original_)
+   then _ide_Applctn_Lazarus_onActivate_original_(Sender);
+end;
 
 end.
