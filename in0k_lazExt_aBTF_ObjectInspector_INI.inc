@@ -20,7 +20,7 @@
 // Авто открытие окна CodeExplorer.
 //  Pаботает ТОЛЬКО в режиме lazExt_aBTF_CodeExplorer_WinAPI_mode.
 //  В обычном режиме это НЕ отключаемая опция.
-{.$define lazExt_aBTF_CodeExplorer_Auto_SHOW}
+{$define lazExt_aBTF_ObjectInspector_Auto_SHOW}
 
 // Кешровать окно CodeExplorer.
 //  Но это сомнительная оптимизация.

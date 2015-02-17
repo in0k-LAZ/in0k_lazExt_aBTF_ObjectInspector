@@ -67,13 +67,14 @@ interface
 {$undef _lazExt_aBTF_CodeExplorer_API_004_}
 {$undef _lazExt_aBTF_CodeExplorer_API_005_}
 
+{$define _lazExt_aBTF_CodeExplorer_API_003_}
 {.$define _lazExt_aBTF_CodeExplorer_API_004_}
 {$define _lazExt_aBTF_CodeExplorer_API_005_}
 
 uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
         sysutils, Dialogs, lazExt_aBTF_ObjectInspector_DEBUG,
      {$endIf}
-     {$ifDEF lazExt_aBTF_CodeExplorer_WinAPI_mode}
+     {$ifDEF _lazExt_aBTF_CodeExplorer_API_003_}
         windows, Controls,
      {$endIf}  ObjectInspector,
      SrcEditorIntf, IDECommands, MenuIntf,  FormEditingIntf,
@@ -107,7 +108,7 @@ type
   {%endRegion}
   {%region --- ВСЯ СУТь ------------------------------------------- /fold}
   protected
-    function _do_BTF_CodeExplorer_:boolean;
+    function _do_BTF_ObjectInspector_:boolean;
   protected
     {$ifDef _lazExt_aBTF_CodeExplorer_API_002_}
     function _do_BTF_CodeExplorer_do_wndCE_OPN:boolean;
@@ -115,7 +116,7 @@ type
     function _do_BTF_CodeExplorer_use_ideLaz:boolean; {$ifDEF _INLINE_}inline;{$endIf}
     {$endIf}
     {$ifDef _lazExt_aBTF_CodeExplorer_API_003_}
-    function _do_BTF_CodeExplorer_use_winAPI:boolean; {$ifDEF _INLINE_}inline;{$endIf}
+    function _do_BTF_ObjectInspector_use_winAPI:boolean; {$ifDEF _INLINE_}inline;{$endIf}
     {$endIf}
   {%endRegion}
   {%region --- ide_Window_CEV : API_004 --------------------------- /fold}
@@ -196,7 +197,7 @@ begin
     DEBUG('GOGOGO','----------------------------------------------------------');
     {$endIf}
 
-    _OIV_GET.BringToFront;
+   _do_BTF_ObjectInspector_;// _OIV_GET.BringToFront;
 
 
 end;
@@ -606,21 +607,51 @@ end;
 
 {$ifDef _lazExt_aBTF_CodeExplorer_API_003_}
 
-function tLazExt_aBTF_ObjectInspector._do_BTF_CodeExplorer_use_winAPI:boolean;
+function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_use_winAPI:boolean;
 var dwp:HDWP;
-    cev:tForm;
+    OIv:tForm;
+    var i:integer;
 begin
-    cev:=_OIV_GET;
-    if Assigned(cev) and Assigned(_ide_Window_SEW_) then begin
-        dwp:=BeginDeferWindowPos(1);
-        DeferWindowPos(dwp,cev.Handle,_ide_Window_SEW_.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
-        result:=EndDeferWindowPos(dwp);
+    OIv:=_OIV_GET;
+    if Assigned(OIv) and Assigned(_ide_Window_DSGNR_) then begin
+
+        {$ifDef lazExt_aBTF_ObjectInspector_Auto_SHOW}
+        if not OIv.Visible then begin
+           OIv.SendToBack;
+           OIv.Visible:=true;
+        end;
+        {$endIf}
+
+
+        if oiv.Parent=_ide_Window_DSGNR_.Parent then begin
+           {$ifDEF _EventLOG_}
+                   DEBUG('++++++++++','++++++++++++++++++++');
+           {$endIf}
+           i:=_ide_Window_DSGNR_.Parent.GetControlIndex(_ide_Window_DSGNR_);
+
+           DEBUG('++++++++++',inttostr(i));
+
+
+    //      _ide_Window_DSGNR_.Parent.SetControlIndex(OIv,i-1);
+        end
+        else begin
+            dwp:=BeginDeferWindowPos(1);
+            DeferWindowPos(dwp,OIv.Handle,_ide_Window_DSGNR_.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+            result:=EndDeferWindowPos(dwp);
+        end;
+
+        if not OIv.Visible then begin
+           {$ifDEF _EventLOG_}
+                   DEBUG('--------','------------------');
+           {$endIf}
+        end;
+
     end
     else begin
         result:=false;
         {$ifDEF _EventLOG_}
-        if not Assigned(_ide_Window_SEW_) then DEBUG('EVENT','_ide_Window_SEW_==nil');
-        if not Assigned(cev)              then DEBUG('EVENT','_ide_Window_OIV_==nil');
+        if not Assigned(_ide_Window_DSGNR_) then DEBUG('EVENT','_ide_Window_DSGNR_==nil');
+        if not Assigned(OIv)                then DEBUG('EVENT','_ide_Window_OIV_==nil');
         {$endIf}
     end;
 end;
@@ -629,16 +660,17 @@ end;
 
 //==============================================================================
 
-function tLazExt_aBTF_ObjectInspector._do_BTF_CodeExplorer_:boolean;
+function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_:boolean;
 begin
     {$ifDef lazExt_aBTF_CodeExplorer_WinAPI_mode}
-        result:=_do_BTF_CodeExplorer_use_winAPI;
+        result:=_do_BTF_ObjectInspector_use_winAPI;
     {$else} //< "стандартными" средствами IDE lazarus
     //    result:=_do_BTF_CodeExplorer_use_ideLaz;
     {$endIf}
+    result:=_do_BTF_ObjectInspector_use_winAPI;
     {$ifDEF _EventLOG_}
-    if result then DEBUG('BTF_CodeExplorer','OK')
-              else DEBUG('BTF_CodeExplorer','ER');
+    if result then DEBUG('BTF_ObjectInspector','OK')
+              else DEBUG('BTF_ObjectInspector','ER');
     {$endIf}
 end;
 
@@ -841,7 +873,7 @@ begin
         if Assigned(tmpSourceEditor) then begin //< чуть потоньше, но тоже толстоват
             if (tmpSourceEditor<>_ideEvent_Editor_) then begin
                 // МОЖНО попробовать выполнить ПОЛЕЗНУЮ нагрузку
-                if _do_BTF_CodeExplorer_
+                if _do_BTF_ObjectInspector_
                 then _ideEvent_Editor_:=tmpSourceEditor
                 else _ideEvent_Editor_:=NIL;
             end
