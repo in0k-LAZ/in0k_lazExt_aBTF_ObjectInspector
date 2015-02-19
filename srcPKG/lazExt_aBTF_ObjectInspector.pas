@@ -67,6 +67,12 @@ interface
 {$undef _lazExt_aBTF_CodeExplorer_API_004_}
 {$undef _lazExt_aBTF_CodeExplorer_API_005_}
 
+
+{$undef _lazExt_aBTF_BTF_use_vclAPI_}
+{$undef _lazExt_aBTF_BTF_use_lclAPI_}
+{$undef _lazExt_aBTF_BTF_use_winAPI_}
+
+
 {$define _lazExt_aBTF_CodeExplorer_API_003_}
 {.$define _lazExt_aBTF_CodeExplorer_API_004_}
 {$define _lazExt_aBTF_CodeExplorer_API_005_}
@@ -83,7 +89,12 @@ uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
 
 type
 
+ {$define _lazExt_aBTF_BTF_use_winAPI_}
+
+
+
  tLazExt_aBTF_ObjectInspector=class
+  (*
   {%region --- CodeExplorer Window ToggleFormUnit --------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_001_}
   strict private
@@ -96,6 +107,8 @@ type
     procedure _TFU_rePLACE;
   {$endIf}
   {%endRegion}
+  *)
+  (*
   {%region --- Active SourceEditorWindow -------------------------- /fold}
   protected
    _ide_Window_SEW_:TSourceEditorWindowInterface; //< текущee АКТИВНОЕ окно редактирования
@@ -106,10 +119,51 @@ type
   private
     procedure _SEW_SET(const wnd:TSourceEditorWindowInterface);
   {%endRegion}
+  *)
+  {%region -- _SETzOrder_ ----------------------------------------- /fold}
+  strict private //< реализация методов расстановки окон
+    {$if defined(_lazExt_aBTF_BTF_use_vclAPI_)}
+    function _SETzOrder_vclAPI_(const wndTOP,wndNXT:TCustomForm):boolean; inline;
+    {$elseif defined(_lazExt_aBTF_BTF_use_lclAPI_)}
+    function _SETzOrder_lclAPI_(const wndTOP,wndNXT:TCustomForm):boolean; inline;
+    {$elseif defined(_lazExt_aBTF_BTF_use_winAPI_)}
+    function _SETzOrder_winAPI_(const wndTOP,wndNXT:TCustomForm):boolean; inline;
+    {$else}
+        {$ERROR "method `_sendToUNDER_xxx_` unDefined"}
+    {$endif}
+  protected //< основной вызов, в котором идет выбор реализации
+    function _SETzOrder_(const wndTOP,wndNXT:TCustomForm):boolean;
+  {%endregion}
+  {%region -- _wndDSGNR_ ------------------------------------------ /fold}
+  strict private
+   _lazarusIde_wndDSGNR_:TCustomForm;
+   _lazarusIde_wndDSGNR_onActivate_original_:TNotifyEvent;
+    procedure _wndDSGNR_onActivate_myCustom_(Sender:TObject);
+    procedure _wndDSGNR_rePlace_onActivate_ (const DSGNR:TCustomForm);
+    procedure _wndDSGNR_reStore_onActivate_ (const DSGNR:TCustomForm);
+  protected //<
+    procedure _wndDSGNR_SET_(const DSGNR:TCustomForm);
+  {%endregion}
+  {%region -- _wndOInsp_ ------------------------------------------ /fold}
+  strict private
+    function  _wndOInsp_find_inSCREEN_:TCustomForm;
+    function  _wndOInsp_find_:TCustomForm;
+  private
+    function  _wndOInsp_GET:TCustomForm;
+  {%endRegion}
+
+
+
+  //   _ideMenuITM_TFUV_onClick_original_:TNotifyEvent;
+
   {%region --- ВСЯ СУТь ------------------------------------------- /fold}
+
+    //..ideLazarus_
+
+
   protected
-    function _do_BTF_ObjectInspector_:boolean;
-  protected
+    function _do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
+ (* protected
     {$ifDef _lazExt_aBTF_CodeExplorer_API_002_}
     function _do_BTF_CodeExplorer_do_wndCE_OPN:boolean;
     function _do_BTF_CodeExplorer_do_wndSE_BTF:boolean;
@@ -117,7 +171,7 @@ type
     {$endIf}
     {$ifDef _lazExt_aBTF_CodeExplorer_API_003_}
     function _do_BTF_ObjectInspector_use_winAPI:boolean; {$ifDEF _INLINE_}inline;{$endIf}
-    {$endIf}
+    {$endIf}   *)
   {%endRegion}
   {%region --- ide_Window_CEV : API_004 --------------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
@@ -131,15 +185,7 @@ type
     procedure _CEV_SET_(const wnd:tForm);
   {$endIf}
   {%endRegion}
-  {%region --- ide_Window_CEV : API_005 --------------------------- /fold}
-  {$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
-  strict private
-    function  _OIV_find_inSCREEN_:TForm;
-    function  _OIV_find_:TForm;
-  private
-    function  _OIV_GET:TForm;
-  {$endIf}
-  {%endRegion}
+  (*
   {%region --- IdeEVENT ------------------------------------------- /fold}
   strict private //< обработка событий
    _ideEvent_Editor_:TSourceEditorInterface;
@@ -149,9 +195,10 @@ type
   strict private //< регистрация событий
     procedure _ideEvent_register_;
   {%endRegion}
-
+  *)
   protected
-    procedure myFNC;
+   // procedure myFNC;
+    (*
   protected
   // _ideMenu_TFUV_:TIDEMenuCommand;
    _ideMenuITM_TFUV_onClick_original_:TNotifyEvent;
@@ -164,45 +211,336 @@ type
     //function enumerate_menuItemITEM(const ideMenuITEM:TIDEMenuSection):boolean;
     function _ideMenu_find_inSection(const ideCommand:TIDECommand; ideMenuSection:TIDEMenuSection):TIDEMenuCommand;
     function _ideMenu_find_         (const ideCommand:TIDECommand):TIDEMenuCommand;
+  *)
   public
     constructor Create;
     destructor DESTROY; override;
   public
-    procedure _onRegister_ideMenuITM_TFUV;
+    //procedure _onRegister_ideMenuITM_TFUV;
+
+
   public
-   _ide_Applctn_Lazarus_onActivate_original_:{pointer;//}TNotifyEvent;
-    procedure  _Lazarus_onActivate_myCustom_(Sender:TObject);
-  public
-   _ide_Window_DSGNR_:TCustomForm;
-   _ide_Window_DSGNR_onActivate_original_:{pointer;//}TNotifyEvent;
-    procedure _DSGNR_onActivate_myCustom_(Sender:TObject);
-    procedure _DSGNR_rePlace_onActivate_(const wnd:TCustomForm);
-    procedure _DSGNR_reStore_onActivate_(const wnd:TCustomForm);
-    procedure _DSGNR_SET_(const wnd:TCustomForm);
+   //_ide_Applctn_Lazarus_onActivate_original_:{pointer;//}TNotifyEvent;
+   // procedure  _Lazarus_onActivate_myCustom_(Sender:TObject);
     //_ideWindow_DSGNR_onDeActivate_original_:TNotifyEvent;
 
-    procedure _PropHookChangeLookupRoot_;
+    procedure _ideEvent_ChangeLookupRoot_;
     procedure RegisterInIdeLAZARUS;
   end;
 
 implementation
 
-const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
-  _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
+constructor tLazExt_aBTF_ObjectInspector.Create;
+begin
+   _lazarusIde_wndDSGNR_onActivate_original_:=nil;
+   _lazarusIde_wndDSGNR_:=nil;
+end;
 
+destructor tLazExt_aBTF_ObjectInspector.DESTROY;
+begin
+    inherited;
+end;
 
-procedure tLazExt_aBTF_ObjectInspector.myFNC;
+//------------------------------------------------------------------------------
+
+procedure tLazExt_aBTF_ObjectInspector.RegisterInIdeLAZARUS;
+begin
+    GlobalDesignHook.AddHandlerChangeLookupRoot(@_ideEvent_ChangeLookupRoot_);
+end;
+
+//------------------------------------------------------------------------------
+
+{%region --- _SETzOrder_ ------------------------------------------ /fold}
+
+{$ifDef _lazExt_aBTF_BTF_use_vclAPI_}
+function tLazExt_aBTF_ObjectInspector._SETzOrder_vclAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
+begin
+   // без заморочек, тупо с морганием
+   wndNXT.BringToFront;
+   wndTOP.BringToFront;
+   result:=true;
+end;
+{$endIf}
+
+{$ifDef _lazExt_aBTF_BTF_use_lclAPI_}
+function tLazExt_aBTF_ObjectInspector._SETzOrder_lclAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
+begin
+    {todo: реализовать по аналогии с BringToFront, теми же методами}
+    result:=false;
+end;
+{$endIf}
+
+{$ifDef _lazExt_aBTF_BTF_use_winAPI_}
+function tLazExt_aBTF_ObjectInspector._SETzOrder_winAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
+var dwp:HDWP;
+begin
+    // используем реальный WIN API инструментарий
+    dwp:=BeginDeferWindowPos(1);
+    DeferWindowPos(dwp,wndNXT.Handle,wndTOP.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+    result:=EndDeferWindowPos(dwp);
+end;
+{$endIf}
+
+//------------------------------------------------------------------------------
+
+// разместить окна по Z порядку: wndNXT сразу под wndTOP
+function tLazExt_aBTF_ObjectInspector._SETzOrder_(const wndTOP,wndNXT:TCustomForm):boolean;
+begin
+    {$if     defined(_lazExt_aBTF_BTF_use_vclAPI_)}
+    result:=_SETzOrder_vclAPI_(wndTOP,wndNXT);
+    {$elseif defined(_lazExt_aBTF_BTF_use_lclAPI_)}
+    result:=_SETzOrder_lclAPI_(wndTOP,wndNXT);
+    {$elseif defined(_lazExt_aBTF_BTF_use_winAPI_)}
+    result:=_SETzOrder_winAPI_(wndTOP,wndNXT);
+    {$else}
+      result:=false;
+      {$ERROR "method `_sendToUNDER_xxx_` unDefined"}
+    {$endif}
+    //------
+    {$ifDEF _EventLOG_}
+    if result then DEBUG('_SETzOrder_','OK '+'frst'+addr2txt(wndTOP)+' scnd'+addr2txt(wndTOP))
+              else DEBUG('_SETzOrder_','ER '+'frst'+addr2txt(wndTOP)+' scnd'+addr2txt(wndTOP));
+    {$endIf}
+end;
+
+{%endRegion}
+
+{%region --- _wndDSGNR_  ------------------------------------------ /fold}
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onActivate_myCustom_(Sender:TObject);
 begin
     {$ifDEF _EventLOG_}
-    DEBUG('GOGOGO','----------------------------------------------------------');
+    DEBUG('wndDSGNR_onActivate','------------>>>>>'+' Sender'+addr2txt(Sender));
     {$endIf}
+    if Assigned(_lazarusIde_wndDSGNR_onActivate_original_) then begin
+       _lazarusIde_wndDSGNR_onActivate_original_(sender);
+        {$ifDEF _EventLOG_}
+        DEBUG('DSGNR','onActivate_original');
+        {$endIf}
+    end;
+    if Sender is TCustomForm then begin
+       _do_BTF_ObjectInspector_(TCustomForm(Sender));
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('skip','Sender is not TCustomForm');
+        {$endIf}
+    end;
+    {$ifDEF _EventLOG_}
+    DEBUG('wndDSGNR_onActivate','------------<<<<<'+' Sender'+addr2txt(Sender));
+    {$endIf}
+end;
 
-   _do_BTF_ObjectInspector_;// _OIV_GET.BringToFront;
+//------------------------------------------------------------------------------
 
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onActivate_(const DSGNR:TCustomForm);
+begin
+    if Assigned(DSGNR) and (DSGNR.OnActivate<>@_wndDSGNR_onActivate_myCustom_) then begin
+       _lazarusIde_wndDSGNR_onActivate_original_:=DSGNR.OnActivate;
+        DSGNR.OnActivate:=@_wndDSGNR_onActivate_myCustom_;
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_rePALCE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_lazarusIde_wndDSGNR_onActivate_original_)+'->'+mthd2txt(@DSGNR.OnActivate));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_DSGNR_rePALCE_onActivate_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnActivate));
+        {$endIf}
+    end
+end;
 
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onActivate_(const DSGNR:TCustomForm);
+begin
+    if Assigned(DSGNR) and (DSGNR.OnActivate=@_wndDSGNR_onActivate_myCustom_) then begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_reSTORE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnActivate)+'->'+mthd2txt(@_lazarusIde_wndDSGNR_onActivate_original_));
+        {$endIf}
+        DSGNR.OnActivate:=_lazarusIde_wndDSGNR_onActivate_original_;
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_reSTORE_onActivate_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnActivate));
+        {$endIf}
+    end;
+   _lazarusIde_wndDSGNR_onActivate_original_:=NIL;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_SET_(const DSGNR:TCustomForm);
+begin
+    if _lazarusIde_wndDSGNR_<>DSGNR then begin
+        if Assigned(_lazarusIde_wndDSGNR_) then begin
+           _wndDSGNR_reStore_onActivate_(_lazarusIde_wndDSGNR_);
+        end;
+       _lazarusIde_wndDSGNR_:=DSGNR;
+        if Assigned(_lazarusIde_wndDSGNR_) then begin
+           _wndDSGNR_rePlace_onActivate_(_lazarusIde_wndDSGNR_);
+        end;
+    end;
+end;
+
+{%endRegion}
+
+{%region --- _wndOInsp_  ------------------------------------------ /fold}
+
+{$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
+
+type //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
+  _cOInsp_ObjectInspector_TFormClass_=TObjectInspectorDlg;
+
+function tLazExt_aBTF_ObjectInspector._wndOInsp_find_inSCREEN_:TCustomForm;
+var i:integer;
+    f:TForm;
+begin
+    result:=nil;
+    for i:=0 to Screen.FormCount-1 do begin
+        f:=Screen.Forms[i];
+        {$ifDEF _EventLOG_}
+        DEBUG('_OIV_find_inSCREEN','Find in SCREEN '+f.ClassName);
+        {$endIf}
+        if f is _cOInsp_ObjectInspector_TFormClass_ then begin
+            result:=f;
+            {$ifDEF _EventLOG_}
+            DEBUG('_OIV_find_inSCREEN','FOUND '+_cOInsp_ObjectInspector_TFormClass_.ClassName+addr2txt(f));
+            {$endIf}
+            break;
+        end;
+    end;
 end;
 
 
+// исчем ЭКЗЕМПЛЯР окна
+//  поиск по ИМЕНИ класса в хранилище открытых окон `Screen.Form`
+function tLazExt_aBTF_ObjectInspector._wndOInsp_find_:TCustomForm;
+begin
+    {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
+    if not Assigned(_ide_Window_OIV_) then begin
+        result:=_OIV_find_inSCREEN;
+       _CEV_SET_(result);
+    end
+    else begin
+        result:=_ide_Window_OIV_;
+    end;
+    {$else}
+    result:=_wndOInsp_find_inSCREEN_;
+    {$endIf}
+end;
+
+//------------------------------------------------------------------------------
+
+function tLazExt_aBTF_ObjectInspector._wndOInsp_GET:TCustomForm;
+begin
+    result:=_wndOInsp_find_;
+    {$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
+    if (not Assigned(result))or(not result.Visible) then begin
+        {$ifDEF _EventLOG_}
+        DEBUG('CEV','NOT FOUND, mast by CREATE');
+        {$endIf}
+        // вызываем окно `CodeExplorerView`, оно встанет на ПЕРЕДНИЙ план
+        // все это приводит к излишним дерганиям и как-то через Ж.
+       _SEW_reStore_onDeactivate(_ide_Window_SEW_);
+       _IDECommand_TFU_execute_;
+       _SEW_rePlace_onDeactivate(_ide_Window_SEW_);
+        // теперь сного его поисчем
+        result:=_wndOInsp_find_;
+        {$ifDEF _EventLOG_}
+        if not Assigned(result) then begin
+            DEBUG('CEV','NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG');
+            ShowMessage('_wndOInsp_GET:NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG'+_cPleaseReport_);
+        end;
+        {$endIf}
+    end;
+    {$endIf}
+end;
+
+{%endRegion}
+
+//------------------------------------------------------------------------------
+
+procedure tLazExt_aBTF_ObjectInspector._ideEvent_ChangeLookupRoot_;
+var tmp:TPersistent;
+    wnd:TCustomForm;
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('ideEvent','ChangeLookupRoot -------------------------------->>>>>');
+    {$endIf}
+    tmp:=GlobalDesignHook.LookupRoot;
+    if Assigned(tmp) then begin
+        wnd:=FormEditingHook.GetDesignerForm(tmp);
+        if Assigned(wnd) then begin
+           _wndDSGNR_SET_(wnd);
+        end;
+       _do_BTF_ObjectInspector_(wnd);
+    end;
+    {$ifDEF _EventLOG_}
+    DEBUG('ideEvent','ChangeLookupRoot --------------------------------<<<<<');
+    {$endIf}
+end;
+
+//------------------------------------------------------------------------------
+
+function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
+var wndOInsp:TCustomForm;
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('EXECUTE','------------------------->>>>>');
+    {$endIf}
+
+    wndOInsp:=_wndOInsp_GET;
+    if Assigned(wndOInsp) and (wndOInsp.Visible) and
+       Assigned(wndDSGNR) //and (wndDSGNR.Visible)
+    then begin
+        result:=_SETzOrder_(wndDSGNR,wndOInsp);
+        {$ifDEF _EventLOG_}
+        DEBUG('OK','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp));
+        {$endIf}
+    end
+    else begin
+       {$ifDEF _EventLOG_}
+       DEBUG('SKIP','');
+       if not Assigned(wndOInsp) then DEBUG('SKIP','wndOInsp is NULL');
+       if not wndOInsp.Visible   then DEBUG('SKIP','wndOInsp is HIDE');
+       if not Assigned(wndDSGNR) then DEBUG('SKIP','wndDSGNR is NULL');
+       //if not wndDSGNR.Visible   then DEBUG('SKIP','wndDSGNR is HIDE');
+       {$endIf}
+    end;
+
+    {$ifDEF _EventLOG_}
+    DEBUG('EXECUTE','-------------------------<<<<<');
+    {$endIf}
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(*
 {$ifDEF _EventLOG_}
 const
    _cPleaseReport_=
@@ -211,25 +549,19 @@ const
         'RU: Пожалуйста, сообщите об этой ошибке разработчику.'+
         LineEnding;
 {$endIf}
+*)
 
-constructor tLazExt_aBTF_ObjectInspector.Create;
-begin
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_001_}
-   _IDECommand_TFU_:=NIL;
-    {$endIf}
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-   _ide_Window_OIV_:=NIL;
-    {$endIf}
-    _ideMenuITM_TFUV_onClick_original_:=nil;
-    _ide_Window_SEW_:=NIL;
-    _ide_Window_DSGNR_:=nil;
-    _ide_Window_DSGNR_onActivate_original_:=nil;
-end;
+//const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
+ // _c_IDECommand_TFU_IdeCODE=ecToggleFormUnit;
 
-destructor tLazExt_aBTF_ObjectInspector.DESTROY;
-begin
-    inherited;
-end;
+
+
+
+
+
+
+(*
+
 
 var CmdMyTool: TIDECommand;
 var tmp:TIDECommand;
@@ -270,9 +602,10 @@ end;
 {procedure tLazExt_aBTF_ObjectInspector._aaaaaaaaa(Sender:TObject); //< моя подстава
 begin
     ShowMessage('sdfgds fgs df');
-end; }
+end; }  *)
 
 
+(*
 procedure tLazExt_aBTF_ObjectInspector._onRegister_ideMenuITM_TFUV;
 var tmp:TIDECommand;
     tmq:TIDEMenuCommand;
@@ -285,62 +618,12 @@ begin
         end;
     end;
 end;
-
-procedure tLazExt_aBTF_ObjectInspector._PropHookChangeLookupRoot_;
-var tmp:TPersistent;
-    wnd:TCustomForm;
-begin
-    tmp:= GlobalDesignHook.LookupRoot;
-    if Assigned(tmp) then begin
-        wnd:=FormEditingHook.GetDesignerForm(tmp);
-        if Assigned(wnd) then begin
-           //ShowMessage('qw' + wnd.Caption);
-          _DSGNR_SET_(wnd);
-        end;
-
-    end;
-end;
-
-procedure tLazExt_aBTF_ObjectInspector.RegisterInIdeLAZARUS;
-begin
-   // _TFU_rePLACE;
-   //_ideEvent_register_;
-   // _onRegister_ideMenuITM_TFUV;
-
-     GlobalDesignHook.AddHandlerChangeLookupRoot(@_PropHookChangeLookupRoot_);
-
-    _ide_Applctn_Lazarus_onActivate_original_:=Application.OnActivate;
-     Application.OnActivate:=@_Lazarus_onActivate_myCustom_;
-
-    // FormEditingHook.
-
-     //es
-    (*
-
-    if _IDECommand_TFU_present_ then begin
-        Key := IDEShortCut(VK_F12,[],VK_UNKNOWN,[]);
-        CmdMyTool:=RegisterIDECommand(_IDECommand_TFU_.Category,_IDECommand_TFU_.LocalizedName,_IDECommand_TFU_.Name, Key, @_aaaaaaaaa, @StartMyTool);
-        tmp:=_IDECommand_TFU_;
-        //-------
-       //_IDECommand_TFU_.ClearShortcutA;
-       //_IDECommand_TFU_.ClearShortcutB;
-       // ShowMessage('ActiveEditor '+'OnExecute:'+addr2txt(_IDECommand_TFU_.OnExecute));
-       // ShowMessage('ActiveEditor '+'OnExecuteProc:'+addr2txt(_IDECommand_TFU_.OnExecuteProc)););
-    end;
+*)
 
 
-//   _IDECommand_TFU_FIND_;
-//    tmp:=IDECommandList.FindIDECommand(ecToggleFormUnit);
-//    tmp.ClearShortcutA;
-//    tmp.ClearShortcutB;
-   //_ideEvent_register_;
-    //Cat:=IDECommandList.FindCategoryByName(CommandCategoryViewName{CommandCategoryToolMenuName});
 
-    RegisterIDEMenuCommand(mnuView{itmSecondaryTools}, CmdMyTool.LocalizedName, CmdMyTool.LocalizedName, nil, nil, CmdMyTool);
 
-    *)
-end;
-
+(*
 {%region --- CodeExplorer Window IDECommand ----------------------- /fold}
 
 {todo: план развития
@@ -455,7 +738,8 @@ end;
 {$endIf}
 
 {%endRegion}
-
+*)
+(*
 {%region --- Active SourceEditorWindow ---------------------------- /fold}
 
 {Идея: отловить момент "выхода" из окна редактирования.
@@ -555,6 +839,8 @@ begin
 end;
 
 {%endRegion}
+*)
+
 
 {%region --- ВСЯ СУТь --------------------------------------------- /fold}
 
@@ -605,40 +891,56 @@ end;
 
 //==============================================================================
 
+
+
 {$ifDef _lazExt_aBTF_CodeExplorer_API_003_}
+
+
+(*
 
 function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_use_winAPI:boolean;
 var dwp:HDWP;
     OIv:tForm;
     var i:integer;
 begin
-    OIv:=_OIV_GET;
-    if Assigned(OIv) and Assigned(_ide_Window_DSGNR_) then begin
+    OIv:=_wndOInsp_GET;
+    if Assigned(OIv) and Assigned(_lazarusIde_wndDSGNR_) then begin
 
         {$ifDef lazExt_aBTF_ObjectInspector_Auto_SHOW}
         if not OIv.Visible then begin
            OIv.SendToBack;
+           OIv.BringToFront;
            OIv.Visible:=true;
         end;
         {$endIf}
 
+        {   OIv.pa
+        if Assigned(_lazarusIde_wndDSGNR_.Parent) then begin
+           DEBUG('++++++++++','_lazarusIde_wndDSGNR_ '+inttostr(_lazarusIde_wndDSGNR_.Parent.GetControlIndex(_lazarusIde_wndDSGNR_)));
+        end;
+        if Assigned(oiv.Parent) then begin
+           DEBUG('++++++++++','oiv '+inttostr(oiv.Parent.GetControlIndex(oiv)));
+        end;
 
-        if oiv.Parent=_ide_Window_DSGNR_.Parent then begin
+
+        if oiv.Parent=_lazarusIde_wndDSGNR_.Parent then begin
            {$ifDEF _EventLOG_}
                    DEBUG('++++++++++','++++++++++++++++++++');
            {$endIf}
-           i:=_ide_Window_DSGNR_.Parent.GetControlIndex(_ide_Window_DSGNR_);
+         //  _lazarusIde_wndDSGNR_.p
+
+         //  i:=_lazarusIde_wndDSGNR_.Parent.GetControlIndex(_lazarusIde_wndDSGNR_);
 
            DEBUG('++++++++++',inttostr(i));
 
 
-    //      _ide_Window_DSGNR_.Parent.SetControlIndex(OIv,i-1);
-        end
-        else begin
+    //      _lazarusIde_wndDSGNR_.Parent.SetControlIndex(OIv,i-1);
+        end  }
+        //else begin
             dwp:=BeginDeferWindowPos(1);
-            DeferWindowPos(dwp,OIv.Handle,_ide_Window_DSGNR_.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+            DeferWindowPos(dwp,OIv.Handle,_lazarusIde_wndDSGNR_.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
             result:=EndDeferWindowPos(dwp);
-        end;
+        //end;
 
         if not OIv.Visible then begin
            {$ifDEF _EventLOG_}
@@ -650,29 +952,17 @@ begin
     else begin
         result:=false;
         {$ifDEF _EventLOG_}
-        if not Assigned(_ide_Window_DSGNR_) then DEBUG('EVENT','_ide_Window_DSGNR_==nil');
+        if not Assigned(_lazarusIde_wndDSGNR_) then DEBUG('EVENT','_lazarusIde_wndDSGNR_==nil');
         if not Assigned(OIv)                then DEBUG('EVENT','_ide_Window_OIV_==nil');
         {$endIf}
     end;
 end;
 
+*)
 {$endIf}
 
 //==============================================================================
 
-function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_:boolean;
-begin
-    {$ifDef lazExt_aBTF_CodeExplorer_WinAPI_mode}
-        result:=_do_BTF_ObjectInspector_use_winAPI;
-    {$else} //< "стандартными" средствами IDE lazarus
-    //    result:=_do_BTF_CodeExplorer_use_ideLaz;
-    {$endIf}
-    result:=_do_BTF_ObjectInspector_use_winAPI;
-    {$ifDEF _EventLOG_}
-    if result then DEBUG('BTF_ObjectInspector','OK')
-              else DEBUG('BTF_ObjectInspector','ER');
-    {$endIf}
-end;
 
 {%endRegion}
 
@@ -779,82 +1069,7 @@ end;
 
 {%endRegion}
 
-{%region --- ide_Window_CEV : API_005 ----------------------------- /fold}
-
-{$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
-
-const //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
-  cWndOIV_className='TObjectInspectorDlg';
-
-function tLazExt_aBTF_ObjectInspector._OIV_find_inSCREEN_:TForm;
-var i:integer;
-    f:TForm;
-begin
-    result:=nil;
-    for i:=0 to Screen.FormCount-1 do begin
-        f:=Screen.Forms[i];
-        {$ifDEF _EventLOG_}
-        DEBUG('_OIV_find_inSCREEN','Find in SCREEN '+f.ClassName);
-        {$endIf}
-        if f is TObjectInspectorDlg then begin
-            result:=f;
-            {$ifDEF _EventLOG_}
-            DEBUG('_OIV_find_inSCREEN','FOUND '+cWndOIV_className+addr2txt(f));
-            {$endIf}
-            break;
-        end;
-    end;
-end;
-
-
-// исчем ЭКЗЕМПЛЯР окна
-//  поиск по ИМЕНИ класса в хранилище открытых окон `Screen.Form`
-function tLazExt_aBTF_ObjectInspector._OIV_find_:TForm;
-begin
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-    if not Assigned(_ide_Window_OIV_) then begin
-        result:=_OIV_find_inSCREEN;
-       _CEV_SET_(result);
-    end
-    else begin
-        result:=_ide_Window_OIV_;
-    end;
-    {$else}
-    result:=_OIV_find_inSCREEN_;
-    {$endIf}
-end;
-
-//------------------------------------------------------------------------------
-
-function tLazExt_aBTF_ObjectInspector._OIV_GET:TForm;
-begin
-    result:=_OIV_find_;
-    {$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
-    if (not Assigned(result))or(not result.Visible) then begin
-        {$ifDEF _EventLOG_}
-        DEBUG('CEV','NOT FOUND, mast by CREATE');
-        {$endIf}
-        // вызываем окно `CodeExplorerView`, оно встанет на ПЕРЕДНИЙ план
-        // все это приводит к излишним дерганиям и как-то через Ж.
-       _SEW_reStore_onDeactivate(_ide_Window_SEW_);
-       _IDECommand_TFU_execute_;
-       _SEW_rePlace_onDeactivate(_ide_Window_SEW_);
-        // теперь сного его поисчем
-        result:=_OIV_find_;
-        {$ifDEF _EventLOG_}
-        if not Assigned(result) then begin
-            DEBUG('CEV','NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG');
-            ShowMessage('_OIV_GET:NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG'+_cPleaseReport_);
-        end;
-        {$endIf}
-    end;
-    {$endIf}
-end;
-
-{$endIf}
-
-{%endRegion}
-
+(*
 {%region --- IdeEVENT semEditorActivate --------------------------- /fold}
 
 // основное рабочее событие
@@ -955,8 +1170,9 @@ begin
 end;
 
 {%endRegion}
+*)
 
-
+(*
 function tLazExt_aBTF_ObjectInspector._ideMenu_find_inSection(const ideCommand:TIDECommand; ideMenuSection:TIDEMenuSection):TIDEMenuCommand;
 var i:integer;
   tmp:TIDEMenuItem;
@@ -1016,7 +1232,7 @@ begin
        DEBUG('replace','TFUV_onClick');
        {$endIf}
     end;
-end;
+end;     *)
 
 (*function tLazExt_aBTF_ObjectInspector.enumerate_menuItemITEM(const ideMenuITEM:TIDEMenuSection):boolean;
 var i:integer;
@@ -1058,65 +1274,11 @@ begin
 //    Items[Index: integer]: TIDEMenuSection
 end; *)
 
-//_ide_Window_DSGNR_:TCustomForm;
-//_ide_Window_DSGNR_onActivate_original_:TNotifyEvent;
-procedure tLazExt_aBTF_ObjectInspector._DSGNR_onActivate_myCustom_(Sender:TObject);
-begin
-    if Assigned(_ide_Window_DSGNR_onActivate_original_) then begin
-      _ide_Window_DSGNR_onActivate_original_(sender);
-       {$ifDEF _EventLOG_}
-       DEBUG('DSGNR','onActivate_original');
-       {$endIf}
-    end;
-    myFNC;
-end;
-
-procedure tLazExt_aBTF_ObjectInspector._DSGNR_rePlace_onActivate_(const wnd:TCustomForm);
-begin
-    if Assigned(wnd) and (wnd.OnActivate<>@_DSGNR_onActivate_myCustom_) then begin
-       _ide_Window_DSGNR_onActivate_original_:=wnd.OnActivate;
-        wnd.OnActivate:=@_DSGNR_onActivate_myCustom_;
-        {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePALCE_onActivate_','wnd'+addr2txt(wnd)+' '+addr2txt(pointer((@_ide_Window_DSGNR_onActivate_original_)^))+ '->'+addr2txt(pointer((@wnd.OnActivate)^)));
-        {$endIf}
-    end
-    else begin
-        {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePALCE_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+addr2txt(pointer((@wnd.OnActivate)^)));
-        {$endIf}
-    end
-end;
-
-procedure tLazExt_aBTF_ObjectInspector._DSGNR_reStore_onActivate_(const wnd:TCustomForm);
-begin
-    if Assigned(wnd) and (wnd.OnActivate=@_DSGNR_onActivate_myCustom_) then begin
-        {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_reSTORE_onActivate_','wnd'+addr2txt(wnd)+' '+addr2txt(pointer((@wnd.OnActivate)^))+'->'+addr2txt(pointer((@_ide_Window_DSGNR_onActivate_original_)^)));
-        {$endIf}
-        wnd.OnActivate:=_ide_Window_DSGNR_onActivate_original_;
-    end
-    else begin
-        {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_reSTORE_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+addr2txt(pointer((@wnd.OnActivate)^)));
-        {$endIf}
-    end;
-   _ide_Window_DSGNR_onActivate_original_:=NIL;
-end;
-
-procedure tLazExt_aBTF_ObjectInspector._DSGNR_SET_(const wnd:TCustomForm);
-begin
-    if _ide_Window_DSGNR_<>wnd then begin
-        if Assigned(_ide_Window_DSGNR_) then begin
-           _DSGNR_reStore_onActivate_(_ide_Window_DSGNR_);
-        end;
-       _ide_Window_DSGNR_:=wnd;
-        if Assigned(_ide_Window_DSGNR_) then begin
-           _DSGNR_rePlace_onActivate_(_ide_Window_DSGNR_);
-        end;
-    end;
-end;
+//_lazarusIde_wndDSGNR_:TCustomForm;
+//_lazarusIde_wndDSGNR_onActivate_original_:TNotifyEvent;
 
 
+(*
 procedure tLazExt_aBTF_ObjectInspector._Lazarus_onActivate_myCustom_(Sender:TObject);
 begin
    {$ifDEF _EventLOG_}
@@ -1125,5 +1287,6 @@ begin
    if Assigned(_ide_Applctn_Lazarus_onActivate_original_)
    then _ide_Applctn_Lazarus_onActivate_original_(Sender);
 end;
-
+*)
+{$endIf}
 end.

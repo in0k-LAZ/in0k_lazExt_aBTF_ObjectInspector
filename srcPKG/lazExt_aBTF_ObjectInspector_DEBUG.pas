@@ -37,6 +37,10 @@ procedure DEBUG(const         msgTEXT:string);
 function  addr2str(const p:pointer):string; inline;
 function  addr2txt(const p:pointer):string; inline;
 
+type pMethod=^tMethod;
+
+function  mthd2txt(const p:pMethod):string; inline;
+
 implementation
 //uses in0k_lazExt_aBTF_ObjectInspector_REG;
 const _c_WndDBG_Caption_='[eventLog] lazExt_aBTF_ObjectInspector';
@@ -88,10 +92,16 @@ begin
 end;
 
 const _c_addr2txt_SMB_='$';
+const _c_addr2txt_DVT_=':';
 
 function addr2txt(const p:pointer):string;
 begin
     result:=_c_addr2txt_SMB_+addr2str(p);
+end;
+
+function mthd2txt(const p:pMethod):string;
+begin
+    result:=_c_addr2txt_SMB_+addr2str(p^.Code)+_c_addr2txt_DVT_+addr2str(p^.Data)
 end;
 
 {%endregion}
