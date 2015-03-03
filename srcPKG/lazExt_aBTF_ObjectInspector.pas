@@ -94,8 +94,8 @@ type
 
 
  tLazExt_aBTF_ObjectInspector=class
-  {%region -- _SETzOrder_ ----------------------------------------- /fold}
-  strict private //< реализация методов расстановки окон
+  {%region -- _SETzOrder_ - реализация методов расстановки окон --- /fold}
+  strict private //<
     {$if defined(_lazExt_aBTF_BTF_use_vclAPI_)}
     function _SETzOrder_vclAPI_(const wndTOP,wndNXT:TCustomForm):boolean; inline;
     {$elseif defined(_lazExt_aBTF_BTF_use_lclAPI_)}
@@ -108,7 +108,7 @@ type
   protected //< основной вызов, в котором идет выбор реализации
     function _SETzOrder_(const wndTOP,wndNXT:TCustomForm):boolean;
   {%endregion}
-  {%region -- _wndDSGNR_ ------------------------------------------ /fold}
+  {%region -- _wndDSGNR_  - окно "под дизайнером" ----------------- /fold}
   strict private
    _lazarusIde_wndDSGNR_:TCustomForm;
    _lazarusIde_wndDSGNR_onActivate_original_:TNotifyEvent;
@@ -118,7 +118,9 @@ type
   protected //<
     procedure _wndDSGNR_SET_(const DSGNR:TCustomForm);
   {%endregion}
-  {%region -- _wndOInsp_ ------------------------------------------ /fold}
+  {%region -- _wndOInsp_  - Окно "Object Inspector" --------------- /fold}
+  strict private
+    function  _wndOInsp_Visible_(const wnd:TCustomForm):boolean;
   strict private
     function  _wndOInsp_find_inSCREEN_:TCustomForm;
     function  _wndOInsp_find_:TCustomForm;
@@ -126,21 +128,8 @@ type
     function  _wndOInsp_GET:TCustomForm;
   {%endRegion}
   {%region --- ВСЯ СУТь ------------------------------------------- /fold}
-
-    //..ideLazarus_
-
-
   protected
     function _do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
- (* protected
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_002_}
-    function _do_BTF_CodeExplorer_do_wndCE_OPN:boolean;
-    function _do_BTF_CodeExplorer_do_wndSE_BTF:boolean;
-    function _do_BTF_CodeExplorer_use_ideLaz:boolean; {$ifDEF _INLINE_}inline;{$endIf}
-    {$endIf}
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_003_}
-    function _do_BTF_ObjectInspector_use_winAPI:boolean; {$ifDEF _INLINE_}inline;{$endIf}
-    {$endIf}   *)
   {%endRegion}
   {%region --- ide_Window_CEV : API_004 --------------------------- /fold}
   {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
@@ -363,6 +352,18 @@ end;
 
 //------------------------------------------------------------------------------
 
+{ Проверка видимо ли Целевое Окно Object Inspector.
+    Все что тут написано работает ради того чтобы запустить эту процедуру.
+    @prm wndObjectInspector ссылка на окно
+    @ret признак видимости
+}
+function tLazExt_aBTF_ObjectInspector._wndOInsp_Visible_(const wndObjectInspector:TCustomForm):boolean;
+begin
+    result:=Assigned(wndObjectInspector) and (wndObjectInspector.Visible);
+end;
+
+//------------------------------------------------------------------------------
+
 function tLazExt_aBTF_ObjectInspector._wndOInsp_GET:TCustomForm;
 begin
     result:=_wndOInsp_find_;
@@ -419,47 +420,42 @@ end;
 
 //------------------------------------------------------------------------------
 
+{%region --- ВСЯ СУТь --------------------------------------------- /fold}
+
+{ Целевая процедура этого компанента.
+    Все что тут написано работает ради того чтобы запустить эту процедуру.
+    @prm wndDSGNR окно которое в данный момент "находится под дизайнером".
+    @ret признак успешного выполнения
+}
 function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
 var wndOInsp:TCustomForm;
 begin
     {$ifDEF _EventLOG_}
-    DEBUG('EXECUTE','------------------------->>>>>');
+    DEBUG('do_BTF_OI_EXECUTE','------------------------->>>>>');
     {$endIf}
 
     wndOInsp:=_wndOInsp_GET;
-    if Assigned(wndOInsp) and (wndOInsp.Visible) and
-       Assigned(wndDSGNR) //and (wndDSGNR.Visible)
+    if Assigned(wndDSGNR) and _wndOInsp_Visible_(wndOInsp)
     then begin
         result:=_SETzOrder_(wndDSGNR,wndOInsp);
         {$ifDEF _EventLOG_}
-        DEBUG('OK','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp));
+        if result then DEBUG('OK','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
+                  else DEBUG('ER','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
         {$endIf}
     end
     else begin
        {$ifDEF _EventLOG_}
        DEBUG('SKIP','');
-       if not Assigned(wndOInsp) then DEBUG('SKIP','wndOInsp is NULL');
-       if not wndOInsp.Visible   then DEBUG('SKIP','wndOInsp is HIDE');
-       if not Assigned(wndDSGNR) then DEBUG('SKIP','wndDSGNR is NULL');
-       //if not wndDSGNR.Visible   then DEBUG('SKIP','wndDSGNR is HIDE');
+       if not _wndOInsp_Visible_(wndOInsp) then DEBUG('SKIP','NOT _wndOInsp_Visible_');
+       if not  Assigned(wndDSGNR)          then DEBUG('SKIP','wndDSGNR is NULL');
        {$endIf}
     end;
 
     {$ifDEF _EventLOG_}
-    DEBUG('EXECUTE','-------------------------<<<<<');
+    DEBUG('do_BTF_OI_EXECUTE','-------------------------<<<<<');
     {$endIf}
 end;
 
-
-
-
-
-
-
-
-
-
-
-
+{%endRegion}
 
  end.
