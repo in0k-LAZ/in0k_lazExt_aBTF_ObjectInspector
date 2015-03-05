@@ -110,13 +110,23 @@ type
   {%endregion}
   {%region -- _wndDSGNR_  - окно "под дизайнером" ----------------- /fold}
   strict private
-   _lazarusIde_wndDSGNR_:TCustomForm;
-   _lazarusIde_wndDSGNR_onActivate_original_:TNotifyEvent;
+   _wndDSGNR_:TCustomForm; //< текущая форма "подДизайнерингом"
+  strict private
+   _wndDSGNR_onActivate_original_:TNotifyEvent;
     procedure _wndDSGNR_onActivate_myCustom_(Sender:TObject);
     procedure _wndDSGNR_rePlace_onActivate_ (const DSGNR:TCustomForm);
     procedure _wndDSGNR_reStore_onActivate_ (const DSGNR:TCustomForm);
+  strict private
+   _wndDSGNR_onClose_original_:TCloseEvent;
+    procedure _wndDSGNR_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
+    procedure _wndDSGNR_rePlace_onClose_ (const DSGNR:TCustomForm);
+    procedure _wndDSGNR_reStore_onClose_ (const DSGNR:TCustomForm);
+  strict private
+    procedure _wndDSGNR_rePlace_(const DSGNR:TCustomForm);
+    procedure _wndDSGNR_reStore_(const DSGNR:TCustomForm);
   protected //<
     procedure _wndDSGNR_SET_(const DSGNR:TCustomForm);
+    procedure _wndDSGNR_CLR_;
   {%endregion}
   {%region -- _wndOInsp_  - Окно "Object Inspector" --------------- /fold}
   strict private
@@ -155,8 +165,7 @@ implementation
 
 constructor tLazExt_aBTF_ObjectInspector.Create;
 begin
-   _lazarusIde_wndDSGNR_onActivate_original_:=nil;
-   _lazarusIde_wndDSGNR_:=nil;
+   _wndDSGNR_CLR_
 end;
 
 destructor tLazExt_aBTF_ObjectInspector.DESTROY;
@@ -235,8 +244,8 @@ begin
     {$ifDEF _EventLOG_}
     DEBUG('wndDSGNR_onActivate','------------>>>>>'+' Sender'+addr2txt(Sender));
     {$endIf}
-    if Assigned(_lazarusIde_wndDSGNR_onActivate_original_) then begin
-       _lazarusIde_wndDSGNR_onActivate_original_(sender);
+    if Assigned(_wndDSGNR_onActivate_original_) then begin
+       _wndDSGNR_onActivate_original_(sender);
         {$ifDEF _EventLOG_}
         DEBUG('DSGNR','onActivate_original');
         {$endIf}
@@ -254,15 +263,15 @@ begin
     {$endIf}
 end;
 
-//------------------------------------------------------------------------------
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onActivate_(const DSGNR:TCustomForm);
 begin
     if Assigned(DSGNR) and (DSGNR.OnActivate<>@_wndDSGNR_onActivate_myCustom_) then begin
-       _lazarusIde_wndDSGNR_onActivate_original_:=DSGNR.OnActivate;
+       _wndDSGNR_onActivate_original_:=DSGNR.OnActivate;
         DSGNR.OnActivate:=@_wndDSGNR_onActivate_myCustom_;
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePALCE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_lazarusIde_wndDSGNR_onActivate_original_)+'->'+mthd2txt(@DSGNR.OnActivate));
+        DEBUG('_DSGNR_rePALCE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_wndDSGNR_onActivate_original_)+'->'+mthd2txt(@DSGNR.OnActivate));
         {$endIf}
     end
     else begin
@@ -276,31 +285,118 @@ procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onActivate_(const DSGNR
 begin
     if Assigned(DSGNR) and (DSGNR.OnActivate=@_wndDSGNR_onActivate_myCustom_) then begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_reSTORE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnActivate)+'->'+mthd2txt(@_lazarusIde_wndDSGNR_onActivate_original_));
+        DEBUG('_wndDSGNR_reSTORE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnActivate)+'->'+mthd2txt(@_wndDSGNR_onActivate_original_));
         {$endIf}
-        DSGNR.OnActivate:=_lazarusIde_wndDSGNR_onActivate_original_;
+        DSGNR.OnActivate:=_wndDSGNR_onActivate_original_;
+       _wndDSGNR_onActivate_original_:=NIL;
     end
     else begin
         {$ifDEF _EventLOG_}
         DEBUG('_wndDSGNR_reSTORE_onActivate_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnActivate));
         {$endIf}
     end;
-   _lazarusIde_wndDSGNR_onActivate_original_:=NIL;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('wndDSGNR_onClose','------------>>>>>'+' Sender'+addr2txt(Sender));
+    {$endIf}
+
+    if Sender is TCustomForm then begin
+        if Sender=_wndDSGNR_ then _wndDSGNR_reStore_(TCustomForm(Sender))
+        else begin
+            {$ifDEF _EventLOG_}
+            DEBUG('warning','------------<<<<<'+' Sender'+addr2txt(Sender)+'<>_wndDSGNR_'+addr2txt(_wndDSGNR_));
+            {$endIf}
+        end;
+       _wndDSGNR_CLR_;
+        if Assigned(TCustomForm(Sender).OnClose) then begin
+            TCustomForm(Sender).OnClose(Sender,CloseAction)
+        end;
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('skip','Sender is not TCustomForm');
+        {$endIf}
+    end;
+
+    {$ifDEF _EventLOG_}
+    DEBUG('wndDSGNR_onClose','------------<<<<<'+' Sender'+addr2txt(Sender));
+    {$endIf}
+end;
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onClose_(const DSGNR:TCustomForm);
+begin
+    if Assigned(DSGNR) and (DSGNR.OnClose<>@_wndDSGNR_onClose_myCustom_) then begin
+       _wndDSGNR_onClose_original_:=DSGNR.OnClose;
+        DSGNR.OnClose:=@_wndDSGNR_onClose_myCustom_;
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_rePlace_onClose_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_wndDSGNR_onClose_original_)+'->'+mthd2txt(@DSGNR.OnClose));
+        {$endIf}
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_rePlace_onClose_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnClose));
+        {$endIf}
+    end
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onClose_(const DSGNR:TCustomForm);
+begin
+    if Assigned(DSGNR) and (DSGNR.OnClose=@_wndDSGNR_onClose_myCustom_) then begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_reStore_onClose_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnClose)+'->'+mthd2txt(@_wndDSGNR_onClose_original_));
+        {$endIf}
+        DSGNR.OnClose:=_wndDSGNR_onClose_original_;
+       _wndDSGNR_onClose_original_:=NIL;
+    end
+    else begin
+        {$ifDEF _EventLOG_}
+        DEBUG('_wndDSGNR_reStore_onClose_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnClose));
+        {$endIf}
+    end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_(const DSGNR:TCustomForm);
+begin
+   _wndDSGNR_rePlace_onActivate_(DSGNR);
+   _wndDSGNR_rePlace_onClose_   (DSGNR);
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_(const DSGNR:TCustomForm);
+begin
+   _wndDSGNR_reStore_onActivate_(DSGNR);
+   _wndDSGNR_reStore_onClose_   (DSGNR);
 end;
 
 //------------------------------------------------------------------------------
 
 procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_SET_(const DSGNR:TCustomForm);
 begin
-    if _lazarusIde_wndDSGNR_<>DSGNR then begin
-        if Assigned(_lazarusIde_wndDSGNR_) then begin
-           _wndDSGNR_reStore_onActivate_(_lazarusIde_wndDSGNR_);
+    if _wndDSGNR_<>DSGNR then begin
+        if Assigned(_wndDSGNR_) then begin
+           _wndDSGNR_reStore_(_wndDSGNR_);
+           _wndDSGNR_CLR_;
         end;
-       _lazarusIde_wndDSGNR_:=DSGNR;
-        if Assigned(_lazarusIde_wndDSGNR_) then begin
-           _wndDSGNR_rePlace_onActivate_(_lazarusIde_wndDSGNR_);
+       _wndDSGNR_:=DSGNR;
+        if Assigned(_wndDSGNR_) then begin
+           _wndDSGNR_rePlace_(_wndDSGNR_);
         end;
     end;
+end;
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_CLR_;
+begin
+   _wndDSGNR_:=nil;
+   _wndDSGNR_onActivate_original_:=nil;
+   _wndDSGNR_onClose_original_:=nil;
 end;
 
 {%endRegion}
@@ -357,9 +453,9 @@ end;
     @prm wndObjectInspector ссылка на окно
     @ret признак видимости
 }
-function tLazExt_aBTF_ObjectInspector._wndOInsp_Visible_(const wndObjectInspector:TCustomForm):boolean;
+function tLazExt_aBTF_ObjectInspector._wndOInsp_Visible_(const wnd:TCustomForm):boolean;
 begin
-    result:=Assigned(wndObjectInspector) and (wndObjectInspector.Visible);
+    result:=Assigned(wnd) and (wnd.Visible);
 end;
 
 //------------------------------------------------------------------------------
@@ -434,7 +530,7 @@ begin
     DEBUG('do_BTF_OI_EXECUTE','------------------------->>>>>');
     {$endIf}
 
-    wndOInsp:=_wndOInsp_GET;
+    wndOInsp:=_wndOInsp_GET; //< получаем ссылку на экземпляр
     if Assigned(wndDSGNR) and _wndOInsp_Visible_(wndOInsp)
     then begin
         result:=_SETzOrder_(wndDSGNR,wndOInsp);
