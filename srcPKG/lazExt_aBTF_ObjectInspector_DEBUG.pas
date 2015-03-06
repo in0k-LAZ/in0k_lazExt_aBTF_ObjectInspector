@@ -9,6 +9,8 @@ uses MenuIntf, Controls, IDEWindowIntf,
 
 type
 
+  { TlazExt_aBTF_ObjectInspector_wndDBG }
+
   TlazExt_aBTF_ObjectInspector_wndDBG = class(TForm)
     a_StayOnTop: TAction;
     a_Clear: TAction;
@@ -23,6 +25,7 @@ type
     procedure a_StayOnTopUpdate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   public
     procedure Message(const TextMSG:string);
     procedure Message(const msgTYPE,msgTEXT:string);
@@ -118,7 +121,13 @@ end;
 
 procedure TlazExt_aBTF_ObjectInspector_wndDBG.FormCreate(Sender: TObject);
 begin
-    Caption:=_c_WndDBG_Caption_;
+    Caption  :=_c_WndDBG_Caption_;
+    FormStyle:=fsStayOnTop;
+end;
+
+procedure TlazExt_aBTF_ObjectInspector_wndDBG.FormDestroy(Sender: TObject);
+begin
+
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

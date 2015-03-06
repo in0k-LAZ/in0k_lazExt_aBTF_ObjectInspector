@@ -111,29 +111,30 @@ type
   {%region -- _wndDSGNR_  - окно "под дизайнером" ----------------- /fold}
   strict private
    _wndDSGNR_:TCustomForm; //< текущая форма "подДизайнерингом"
-  strict private
+  strict private //< подмена аля СабКлассинг
    _wndDSGNR_onActivate_original_:TNotifyEvent;
     procedure _wndDSGNR_onActivate_myCustom_(Sender:TObject);
-    procedure _wndDSGNR_rePlace_onActivate_ (const DSGNR:TCustomForm);
-    procedure _wndDSGNR_reStore_onActivate_ (const DSGNR:TCustomForm);
+    procedure _wndDSGNR_rePlace_onActivate_ (const wnd:TCustomForm);
+    procedure _wndDSGNR_reStore_onActivate_ (const wnd:TCustomForm);
+  strict private //< подмена аля СабКлассинг
+   _wndDSGNR_onDestroy_original_:TNotifyEvent;
+    procedure _wndDSGNR_onDestroy_myCustom_ (Sender:TObject);
+    procedure _wndDSGNR_rePlace_onDestroy_  (const wnd:TCustomForm);
+    procedure _wndDSGNR_reStore_onDestroy_  (const wnd:TCustomForm);
   strict private
-   _wndDSGNR_onClose_original_:TCloseEvent;
-    procedure _wndDSGNR_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
-    procedure _wndDSGNR_rePlace_onClose_ (const DSGNR:TCustomForm);
-    procedure _wndDSGNR_reStore_onClose_ (const DSGNR:TCustomForm);
-  strict private
-    procedure _wndDSGNR_rePlace_(const DSGNR:TCustomForm);
-    procedure _wndDSGNR_reStore_(const DSGNR:TCustomForm);
+    procedure _wndDSGNR_rePlace_(const wnd:TCustomForm);
+    procedure _wndDSGNR_reStore_(const wnd:TCustomForm);
   protected //<
     procedure _wndDSGNR_SET_(const DSGNR:TCustomForm);
     procedure _wndDSGNR_CLR_;
   {%endregion}
   {%region -- _wndOInsp_  - Окно "Object Inspector" --------------- /fold}
   strict private
-    function  _wndOInsp_Visible_(const wnd:TCustomForm):boolean;
+   _wndOInsp_:TCustomForm; //< "закешированное" окно, если оно ЕСТЬ => autoShow НЕ должно работать
+    procedure _wndOInsp_CLR_;
   strict private
     function  _wndOInsp_find_inSCREEN_:TCustomForm;
-    function  _wndOInsp_find_:TCustomForm;
+    function  _wndOInsp_prepare_:TCustomForm;
   private
     function  _wndOInsp_GET:TCustomForm;
   {%endRegion}
@@ -239,17 +240,32 @@ end;
 
 {%region --- _wndDSGNR_  ------------------------------------------ /fold}
 
+{$ifDEF _EventLOG_}
+const
+   _cTXT_wndEVENT         ='wndEVENT';
+   _cTXT_wndDSGNR         ='wndDSGNR';
+   _cTXT_wndDSGNR_rePALCE_='_wndDSGNR_rePALCE_';
+   _cTXT_wndDSGNR_reSTORE_='_wndDSGNR_reSTORE_';
+{$endIf}
+
+//------------------------------------------------------------------------------
+
+{%region ----- _wndDSGNR_onActivate_ -------------------- /fold}
+
 procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onActivate_myCustom_(Sender:TObject);
 begin
     {$ifDEF _EventLOG_}
-    DEBUG('wndDSGNR_onActivate','------------>>>>>'+' Sender'+addr2txt(Sender));
+    DEBUG(_cTXT_wndEVENT,_cTXT_wndDSGNR+'.onActivate'+'------------>>>>>'+' Sender'+addr2txt(Sender));
     {$endIf}
+
+    //--- выполняем то что ДОЛЖНО было быть выполнено
     if Assigned(_wndDSGNR_onActivate_original_) then begin
        _wndDSGNR_onActivate_original_(sender);
         {$ifDEF _EventLOG_}
         DEBUG('DSGNR','onActivate_original');
         {$endIf}
     end;
+    //--- собственная добавка
     if Sender is TCustomForm then begin
        _do_BTF_ObjectInspector_(TCustomForm(Sender));
     end
@@ -258,54 +274,58 @@ begin
         DEBUG('skip','Sender is not TCustomForm');
         {$endIf}
     end;
+
     {$ifDEF _EventLOG_}
-    DEBUG('wndDSGNR_onActivate','------------<<<<<'+' Sender'+addr2txt(Sender));
+    DEBUG(_cTXT_wndEVENT,_cTXT_wndDSGNR+'.onActivate'+'------------<<<<<'+' Sender'+addr2txt(Sender));
     {$endIf}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onActivate_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onActivate_(const wnd:TCustomForm);
 begin
-    if Assigned(DSGNR) and (DSGNR.OnActivate<>@_wndDSGNR_onActivate_myCustom_) then begin
-       _wndDSGNR_onActivate_original_:=DSGNR.OnActivate;
-        DSGNR.OnActivate:=@_wndDSGNR_onActivate_myCustom_;
+    if Assigned(wnd) and (wnd.OnActivate<>@_wndDSGNR_onActivate_myCustom_) then begin
+       _wndDSGNR_onActivate_original_:=wnd.OnActivate;
+        wnd.OnActivate:=@_wndDSGNR_onActivate_myCustom_;
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePALCE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_wndDSGNR_onActivate_original_)+'->'+mthd2txt(@DSGNR.OnActivate));
+        DEBUG(_cTXT_wndDSGNR_rePALCE_+'_onActivate_','wnd'+addr2txt(wnd)+' '+mthd2txt(@_wndDSGNR_onActivate_original_)+'->'+mthd2txt(@wnd.OnActivate));
         {$endIf}
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_DSGNR_rePALCE_onActivate_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnActivate));
+        DEBUG(_cTXT_wndDSGNR_rePALCE_+'_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+mthd2txt(@wnd.OnActivate));
         {$endIf}
     end
 end;
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onActivate_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onActivate_(const wnd:TCustomForm);
 begin
-    if Assigned(DSGNR) and (DSGNR.OnActivate=@_wndDSGNR_onActivate_myCustom_) then begin
+    if Assigned(wnd) and (wnd.OnActivate=@_wndDSGNR_onActivate_myCustom_) then begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_reSTORE_onActivate_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnActivate)+'->'+mthd2txt(@_wndDSGNR_onActivate_original_));
+        DEBUG(_cTXT_wndDSGNR_reSTORE_+'_onActivate_','wnd'+addr2txt(wnd)+' '+mthd2txt(@wnd.OnActivate)+'->'+mthd2txt(@_wndDSGNR_onActivate_original_));
         {$endIf}
-        DSGNR.OnActivate:=_wndDSGNR_onActivate_original_;
+        wnd.OnActivate:=_wndDSGNR_onActivate_original_;
        _wndDSGNR_onActivate_original_:=NIL;
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_reSTORE_onActivate_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnActivate));
+        DEBUG(_cTXT_wndDSGNR_reSTORE_+'_onActivate_','SKIP wnd'+addr2txt(wnd)+' now'+mthd2txt(@wnd.OnActivate));
         {$endIf}
     end;
 end;
 
-//------------------------------------------------------------------------------
+{%endregion}
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
+{%region ----- _wndDSGNR_onDestroy_  -------------------- /fold}
+
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onDestroy_myCustom_(Sender:TObject);
 begin
     {$ifDEF _EventLOG_}
-    DEBUG('wndDSGNR_onClose','------------>>>>>'+' Sender'+addr2txt(Sender));
+    DEBUG(_cTXT_wndEVENT,_cTXT_wndDSGNR+'.onDestroy'+'------------>>>>>'+' Sender'+addr2txt(Sender));
     {$endIf}
 
     if Sender is TCustomForm then begin
+        //--- собственная добавка
         if Sender=_wndDSGNR_ then _wndDSGNR_reStore_(TCustomForm(Sender))
         else begin
             {$ifDEF _EventLOG_}
@@ -313,8 +333,9 @@ begin
             {$endIf}
         end;
        _wndDSGNR_CLR_;
-        if Assigned(TCustomForm(Sender).OnClose) then begin
-            TCustomForm(Sender).OnClose(Sender,CloseAction)
+        //--- выполняем то что ДОЛЖНО было быть выполнено
+        if Assigned(TCustomForm(Sender).OnDestroy) then begin
+            TCustomForm(Sender).OnDestroy(Sender)
         end;
     end
     else begin
@@ -324,56 +345,70 @@ begin
     end;
 
     {$ifDEF _EventLOG_}
-    DEBUG('wndDSGNR_onClose','------------<<<<<'+' Sender'+addr2txt(Sender));
+    DEBUG(_cTXT_wndEVENT,_cTXT_wndDSGNR+'.onDestroy'+'------------<<<<<'+' Sender'+addr2txt(Sender));
     {$endIf}
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onClose_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_onDestroy_(const wnd:TCustomForm);
 begin
-    if Assigned(DSGNR) and (DSGNR.OnClose<>@_wndDSGNR_onClose_myCustom_) then begin
-       _wndDSGNR_onClose_original_:=DSGNR.OnClose;
-        DSGNR.OnClose:=@_wndDSGNR_onClose_myCustom_;
+    if Assigned(wnd) and (wnd.OnDestroy<>@_wndDSGNR_onDestroy_myCustom_) then begin
+       _wndDSGNR_onDestroy_original_:=wnd.OnDestroy;
+        wnd.OnDestroy:=@_wndDSGNR_onDestroy_myCustom_;
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_rePlace_onClose_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@_wndDSGNR_onClose_original_)+'->'+mthd2txt(@DSGNR.OnClose));
+        DEBUG(_cTXT_wndDSGNR_rePALCE_+'_onDestroy_','wnd'+addr2txt(wnd)+' '+mthd2txt(@_wndDSGNR_onDestroy_original_)+'->'+mthd2txt(@wnd.OnDestroy));
         {$endIf}
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_rePlace_onClose_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnClose));
+        DEBUG(_cTXT_wndDSGNR_rePALCE_+'_onDestroy_','SKIP wnd'+addr2txt(wnd)+' now'+mthd2txt(@wnd.OnDestroy));
         {$endIf}
     end
 end;
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onClose_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_onDestroy_(const wnd:TCustomForm);
 begin
-    if Assigned(DSGNR) and (DSGNR.OnClose=@_wndDSGNR_onClose_myCustom_) then begin
+    if Assigned(wnd) and (wnd.OnDestroy=@_wndDSGNR_onDestroy_myCustom_) then begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_reStore_onClose_','DSGNR'+addr2txt(DSGNR)+' '+mthd2txt(@DSGNR.OnClose)+'->'+mthd2txt(@_wndDSGNR_onClose_original_));
+        DEBUG(_cTXT_wndDSGNR_reSTORE_+'_onDestroy_','wnd'+addr2txt(wnd)+' '+mthd2txt(@wnd.OnDestroy)+'->'+mthd2txt(@_wndDSGNR_onDestroy_original_));
         {$endIf}
-        DSGNR.OnClose:=_wndDSGNR_onClose_original_;
-       _wndDSGNR_onClose_original_:=NIL;
+        wnd.OnDestroy:=_wndDSGNR_onDestroy_original_;
+       _wndDSGNR_onDestroy_original_:=NIL;
     end
     else begin
         {$ifDEF _EventLOG_}
-        DEBUG('_wndDSGNR_reStore_onClose_','SKIP DSGNR'+addr2txt(DSGNR)+' now'+mthd2txt(@DSGNR.OnClose));
+        DEBUG(_cTXT_wndDSGNR_reSTORE_+'_onDestroy_','SKIP wnd'+addr2txt(wnd)+' now'+mthd2txt(@wnd.OnDestroy));
         {$endIf}
     end;
 end;
 
+{%endregion}
+
 //------------------------------------------------------------------------------
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_rePlace_(const wnd:TCustomForm);
 begin
-   _wndDSGNR_rePlace_onActivate_(DSGNR);
-   _wndDSGNR_rePlace_onClose_   (DSGNR);
+    {$ifDEF _EventLOG_}
+    DEBUG(_cTXT_wndDSGNR_rePALCE_,'wnd'+addr2txt(wnd)+'-------------->');
+    {$endIf}
+   _wndDSGNR_rePlace_onActivate_(wnd);
+   _wndDSGNR_rePlace_onDestroy_ (wnd);
+    {$ifDEF _EventLOG_}
+    DEBUG(_cTXT_wndDSGNR_rePALCE_,'wnd'+addr2txt(wnd)+'--------------<');
+    {$endIf}
 end;
 
-procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_(const DSGNR:TCustomForm);
+procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_reStore_(const wnd:TCustomForm);
 begin
-   _wndDSGNR_reStore_onActivate_(DSGNR);
-   _wndDSGNR_reStore_onClose_   (DSGNR);
+    {$ifDEF _EventLOG_}
+    DEBUG(_cTXT_wndDSGNR_reSTORE_,'wnd'+addr2txt(wnd)+'-------------->');
+    {$endIf}
+   _wndDSGNR_reStore_onDestroy_ (wnd);
+   _wndDSGNR_reStore_onActivate_(wnd);
+    {$ifDEF _EventLOG_}
+    DEBUG(_cTXT_wndDSGNR_reSTORE_,'wnd'+addr2txt(wnd)+'--------------<');
+    {$endIf}
 end;
 
 //------------------------------------------------------------------------------
@@ -396,14 +431,19 @@ procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_CLR_;
 begin
    _wndDSGNR_:=nil;
    _wndDSGNR_onActivate_original_:=nil;
-   _wndDSGNR_onClose_original_:=nil;
+   _wndDSGNR_onDestroy_original_ :=nil;
 end;
 
 {%endRegion}
 
 {%region --- _wndOInsp_  ------------------------------------------ /fold}
 
-{$ifDef _lazExt_aBTF_CodeExplorer_API_005_}
+procedure tLazExt_aBTF_ObjectInspector._wndOInsp_CLR_;
+begin
+   _wndOInsp_:=nil;
+end;
+
+//------------------------------------------------------------------------------
 
 type //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
   _cOInsp_ObjectInspector_TFormClass_=TObjectInspectorDlg;
@@ -415,80 +455,47 @@ begin
     result:=nil;
     for i:=0 to Screen.FormCount-1 do begin
         f:=Screen.Forms[i];
-        {$ifDEF _EventLOG_}
-        DEBUG('_OIV_find_inSCREEN','Find in SCREEN '+f.ClassName);
-        {$endIf}
         if f is _cOInsp_ObjectInspector_TFormClass_ then begin
             result:=f;
-            {$ifDEF _EventLOG_}
-            DEBUG('_OIV_find_inSCREEN','FOUND '+_cOInsp_ObjectInspector_TFormClass_.ClassName+addr2txt(f));
-            {$endIf}
             break;
         end;
     end;
-end;
-
-// исчем ЭКЗЕМПЛЯР окна
-//  поиск по ИМЕНИ класса в хранилище открытых окон `Screen.Form`
-function tLazExt_aBTF_ObjectInspector._wndOInsp_find_:TCustomForm;
-begin
-    {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-    (*if not Assigned(_ide_Window_OIV_) then begin
-        result:=_OIV_find_inSCREEN;
-       _CEV_SET_(result);
-    end
-    else begin
-        result:=_ide_Window_OIV_;
-    end;*)
-    {$error not def}
-    {$else}
-    result:=_wndOInsp_find_inSCREEN_;
+    {$ifDEF _EventLOG_}
+    if Assigned(result)
+    then DEBUG('_wndOInsp_find_inSCREEN_','FOUND '+_cOInsp_ObjectInspector_TFormClass_.ClassName+addr2txt(result))
+    else DEBUG('_wndOInsp_find_inSCREEN_','NOT found');
     {$endIf}
 end;
 
 //------------------------------------------------------------------------------
 
-{ Проверка видимо ли Целевое Окно Object Inspector.
-    Все что тут написано работает ради того чтобы запустить эту процедуру.
-    @prm wndObjectInspector ссылка на окно
-    @ret признак видимости
-}
-function tLazExt_aBTF_ObjectInspector._wndOInsp_Visible_(const wnd:TCustomForm):boolean;
+function tLazExt_aBTF_ObjectInspector._wndOInsp_prepare_:TCustomForm;
 begin
-    result:=Assigned(wnd) and (wnd.Visible);
+    result:=_wndOInsp_find_inSCREEN_;
+    {$ifDef lazExt_aBTF_ObjectInspector_Auto_SHOW}
+    if not Assigned(result) then begin
+        // надо сказать программисту, чтоб он сообщил разработчику (т.е. мне),
+        // что тут ОГРОМНЫЙ косячек, и теперь надо реализовывать вызов IDE
+        // комманды для показа ObjectInspector
+        {todo: зеализовать}
+        //MessageDlg();
+    end;
+    if Assigned(result)and(not result.Visible) then begin
+        result.SendToBack;
+        result.show;
+    end;
+    {$endIf}
 end;
 
 //------------------------------------------------------------------------------
 
 function tLazExt_aBTF_ObjectInspector._wndOInsp_GET:TCustomForm;
 begin
-    result:=_wndOInsp_find_;
-
-    (*
-    {$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
-    if (not Assigned(result))or(not result.Visible) then begin
-        {$ifDEF _EventLOG_}
-        DEBUG('CEV','NOT FOUND, mast by CREATE');
-        {$endIf}
-        // вызываем окно `CodeExplorerView`, оно встанет на ПЕРЕДНИЙ план
-        // все это приводит к излишним дерганиям и как-то через Ж.
-       _SEW_reStore_onDeactivate(_ide_Window_SEW_);
-       _IDECommand_TFU_execute_;
-       _SEW_rePlace_onDeactivate(_ide_Window_SEW_);
-        // теперь сного его поисчем
-        result:=_wndOInsp_find_;
-        {$ifDEF _EventLOG_}
-        if not Assigned(result) then begin
-            DEBUG('CEV','NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG');
-            ShowMessage('_wndOInsp_GET:NOT FOUND !!! BIG ERROR: possible name "'+cWndOIV_className+'" is WRONG'+_cPleaseReport_);
-        end;
-        {$endIf}
+    if not Assigned(_wndOInsp_) then begin
+       _wndOInsp_:=_wndOInsp_prepare_;
     end;
-    {$endIf}
-    *)
+    result:=_wndOInsp_;
 end;
-
-{$endIf}
 
 {%endRegion}
 

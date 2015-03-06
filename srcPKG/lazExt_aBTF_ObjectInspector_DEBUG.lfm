@@ -5,9 +5,8 @@ object lazExt_aBTF_ObjectInspector_wndDBG: TlazExt_aBTF_ObjectInspector_wndDBG
   Width = 320
   ClientHeight = 240
   ClientWidth = 320
-  OnClose = FormClose
   OnCreate = FormCreate
-  LCLVersion = '1.2.6.0'
+  LCLVersion = '1.4.0.2'
   object Memo1: TMemo
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
