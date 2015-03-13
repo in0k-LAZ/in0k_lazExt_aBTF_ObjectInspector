@@ -184,6 +184,14 @@ end;
 //------------------------------------------------------------------------------
 
 {%region --- _SETzOrder_ ------------------------------------------ /fold}
+//---
+// выстраивание окон в определенном Z порядкЕ. В резальтате должно получится
+//  wndTOP - на самом верху (по идее оно там и лежит)
+//  wndNXT - сразу под окном wndTOP
+//--- !!! ---
+// корректность вызова (входных параметров)
+// ДОЛЖНА проверяется в ВЫЗЫВАЮЩЕЙ процедуре
+//---
 
 {$ifDef _lazExt_aBTF_BTF_use_vclAPI_}
 function tLazExt_aBTF_ObjectInspector._SETzOrder_vclAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
@@ -198,6 +206,7 @@ end;
 {$ifDef _lazExt_aBTF_BTF_use_lclAPI_}
 function tLazExt_aBTF_ObjectInspector._SETzOrder_lclAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
 begin
+    {$error "method unDefined"}
     {todo: реализовать по аналогии с BringToFront, теми же методами}
     result:=false;
 end;
@@ -206,8 +215,7 @@ end;
 {$ifDef _lazExt_aBTF_BTF_use_winAPI_}
 function tLazExt_aBTF_ObjectInspector._SETzOrder_winAPI_(const wndTOP,wndNXT:TCustomForm):boolean;
 var dwp:HDWP;
-begin
-    // используем реальный WIN API инструментарий
+begin // используем реальный WIN API инструментарий
     dwp:=BeginDeferWindowPos(1);
     DeferWindowPos(dwp,wndNXT.Handle,wndTOP.Handle,0,0,0,0,SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
     result:=EndDeferWindowPos(dwp);
@@ -217,8 +225,10 @@ end;
 //------------------------------------------------------------------------------
 
 // разместить окна по Z порядку: wndNXT сразу под wndTOP
+//  обобщенный метод, вызывает конкретную реализацию.
 function tLazExt_aBTF_ObjectInspector._SETzOrder_(const wndTOP,wndNXT:TCustomForm):boolean;
-begin
+begin // корректность вызова (входных параметров)
+      // ДОЛЖНА проверяется в ВЫЗЫВАЮЩЕЙ процедуре
     {$if     defined(_lazExt_aBTF_BTF_use_vclAPI_)}
     result:=_SETzOrder_vclAPI_(wndTOP,wndNXT);
     {$elseif defined(_lazExt_aBTF_BTF_use_lclAPI_)}
@@ -231,14 +241,23 @@ begin
     {$endif}
     //------
     {$ifDEF _EventLOG_}
-    if result then DEBUG('_SETzOrder_','OK '+'frst'+addr2txt(wndTOP)+' scnd'+addr2txt(wndTOP))
-              else DEBUG('_SETzOrder_','ER '+'frst'+addr2txt(wndTOP)+' scnd'+addr2txt(wndTOP));
+    if result then DEBUG('_SETzOrder_','OK '+'wndTOP'+addr2txt(wndTOP)+' wndNXT'+addr2txt(wndTOP))
+              else DEBUG('_SETzOrder_','ER '+'wndTOP'+addr2txt(wndTOP)+' wndNXT'+addr2txt(wndTOP));
     {$endIf}
 end;
 
 {%endRegion}
 
 {%region --- _wndDSGNR_  ------------------------------------------ /fold}
+
+// _wndDSGNR_ - текущее окно под "дизайнерингом"
+//  первый вход обнаруживается в событии `_ideEvent_ChangeLookupRoot_`
+//
+//  Для обнаружение перевода фокуса в окно реализуем "СабКлассинг" на уровне
+//  событий:
+//    onActivate - окно получает фокус и надо выполнить `_do_BTF_ObjectInspector_`
+//    onDestroy  - окно УНИЧТОЖАЕТСЯ и надо убрать "СабКлассинг"
+
 
 {$ifDEF _EventLOG_}
 const
@@ -252,6 +271,7 @@ const
 
 {%region ----- _wndDSGNR_onActivate_ -------------------- /fold}
 
+// подмена стандартному событию
 procedure tLazExt_aBTF_ObjectInspector._wndDSGNR_onActivate_myCustom_(Sender:TObject);
 begin
     {$ifDEF _EventLOG_}
@@ -448,6 +468,8 @@ end;
 type //< тут возможно придется определять относительно ВЕРСИИ ЛАЗАРУСА
   _cOInsp_ObjectInspector_TFormClass_=TObjectInspectorDlg;
 
+// исчем экземпляр окна в массиве Screen.Forms
+//  поиск по типу!
 function tLazExt_aBTF_ObjectInspector._wndOInsp_find_inSCREEN_:TCustomForm;
 var i:integer;
     f:TForm;
@@ -473,6 +495,11 @@ function tLazExt_aBTF_ObjectInspector._wndOInsp_prepare_:TCustomForm;
 begin
     result:=_wndOInsp_find_inSCREEN_;
     {$ifDef lazExt_aBTF_ObjectInspector_Auto_SHOW}
+    // суда мы попадем тока в случае ОТСУТСТВИЯ кешированной ссылки на
+    // окно ObjectInspector, это означает что была смена она "подДизайнерингом"
+    // и следовательно процедуру АВТОпоказа можно запускать
+
+
     if not Assigned(result) then begin
         // надо сказать программисту, чтоб он сообщил разработчику (т.е. мне),
         // что тут ОГРОМНЫЙ косячек, и теперь надо реализовывать вызов IDE
@@ -513,8 +540,9 @@ begin
         wnd:=FormEditingHook.GetDesignerForm(tmp);
         if Assigned(wnd) then begin
            _wndDSGNR_SET_(wnd);
+           _wndOInsp_CLR_; //< чтобы срабатывал механизм АВТОПОКАЗА
+           _do_BTF_ObjectInspector_(wnd);
         end;
-       _do_BTF_ObjectInspector_(wnd);
     end;
     {$ifDEF _EventLOG_}
     DEBUG('ideEvent','ChangeLookupRoot --------------------------------<<<<<');
@@ -525,35 +553,54 @@ end;
 
 {%region --- ВСЯ СУТь --------------------------------------------- /fold}
 
-{ Целевая процедура этого компанента.
+{ Целевая процедура этого компoнента.
     Все что тут написано работает ради того чтобы запустить эту процедуру.
     @prm wndDSGNR окно которое в данный момент "находится под дизайнером".
     @ret признак успешного выполнения
 }
 function tLazExt_aBTF_ObjectInspector._do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
 var wndOInsp:TCustomForm;
-begin
+begin // wndDSGNR.Visible=true -- НАДУМАННАЯ проверка, так для общности
     {$ifDEF _EventLOG_}
     DEBUG('do_BTF_OI_EXECUTE','------------------------->>>>>');
     {$endIf}
-
-    wndOInsp:=_wndOInsp_GET; //< получаем ссылку на экземпляр
-    if Assigned(wndDSGNR) and _wndOInsp_Visible_(wndOInsp)
-    then begin
-        result:=_SETzOrder_(wndDSGNR,wndOInsp);
-        {$ifDEF _EventLOG_}
-        if result then DEBUG('OK','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
-                  else DEBUG('ER','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
-        {$endIf}
+    if Assigned(wndDSGNR) and (wndDSGNR.Visible) then begin
+        wndOInsp:=_wndOInsp_GET; //< получаем ссылку на экземпляр
+        if Assigned(wndOInsp) and (wndOInsp.Visible)
+        then begin //< все проверки пройденны, можно начинать
+            result:=_SETzOrder_(wndDSGNR,wndOInsp);
+            {$ifDEF _EventLOG_}
+            if result then DEBUG('OK','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
+                      else DEBUG('ER','wndDSGNR'+addr2txt(wndDSGNR)+' wndOInsp'+addr2txt(wndOInsp))
+            {$endIf}
+        end
+        else begin
+            {$ifDEF _EventLOG_}
+            if not Assigned(wndOInsp)
+            then DEBUG('SKIP','wndOInsp is NULL')
+           else
+            if not wndOInsp.Visible
+            then DEBUG('SKIP','wndOInsp Visible=false');
+           else
+            begin
+                 DEBUG('SKIP','wndOInsp cause is unknown')
+            end;
+            {$endIf}
+        end;
     end
     else begin
-       {$ifDEF _EventLOG_}
-       DEBUG('SKIP','');
-       if not _wndOInsp_Visible_(wndOInsp) then DEBUG('SKIP','NOT _wndOInsp_Visible_');
-       if not  Assigned(wndDSGNR)          then DEBUG('SKIP','wndDSGNR is NULL');
-       {$endIf}
+        {$ifDEF _EventLOG_}
+        if not Assigned(wndDSGNR)
+        then DEBUG('SKIP','wndDSGNR is NULL')
+       else
+        if not wndDSGNR.Visible
+        then DEBUG('SKIP','wndDSGNR Visible=false');
+       else
+        begin
+             DEBUG('SKIP','wndDSGNR cause is unknown')
+        end;
+        {$endIf}
     end;
-
     {$ifDEF _EventLOG_}
     DEBUG('do_BTF_OI_EXECUTE','-------------------------<<<<<');
     {$endIf}

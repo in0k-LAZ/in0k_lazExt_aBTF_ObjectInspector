@@ -26,6 +26,7 @@ type
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Memo1Change(Sender: TObject);
   public
     procedure Message(const TextMSG:string);
     procedure Message(const msgTYPE,msgTEXT:string);
@@ -126,6 +127,11 @@ begin
 end;
 
 procedure TlazExt_aBTF_ObjectInspector_wndDBG.FormDestroy(Sender: TObject);
+begin
+
+end;
+
+procedure TlazExt_aBTF_ObjectInspector_wndDBG.Memo1Change(Sender: TObject);
 begin
 
 end;
