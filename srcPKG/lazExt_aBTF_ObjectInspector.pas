@@ -7,28 +7,26 @@ interface
 {$I in0k_lazExt_aBTF_ObjectInspector_INI.inc}
 
 {%region --- setUp INLINE SETTINGs for Compile     ---------------- /fold}
-{$undef _lazExt_aBTF_CodeExplorer_API_001_}
-{$undef _lazExt_aBTF_CodeExplorer_API_002_}
-{$undef _lazExt_aBTF_CodeExplorer_API_003_}
-{$undef _lazExt_aBTF_CodeExplorer_API_004_}
-{$undef _lazExt_aBTF_CodeExplorer_API_005_}
+{$undef _lazExt_aBTF_BTF_use_vclAPI_}
+{$undef _lazExt_aBTF_BTF_use_lclAPI_}
+{$undef _lazExt_aBTF_BTF_use_winAPI_}
 //----
-{$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
-    {$define _lazExt_aBTF_CodeExplorer_API_001_}
+{$ifDef lazExt_aBTF_ObjectInspector_BTF_use_vclAPI}
+    {$define _lazExt_aBTF_BTF_use_vclAPI_}
+    {$undef  _lazExt_aBTF_BTF_use_lclAPI_}
+    {$undef  _lazExt_aBTF_BTF_use_winAPI_}
 {$endif}
-{$ifDef lazExt_aBTF_CodeExplorer_WinAPI_mode}
-    //---- под Виндой
-    {$undef  _lazExt_aBTF_CodeExplorer_API_002_}
-    {$define _lazExt_aBTF_CodeExplorer_API_003_}
-    {$ifdef lazExt_aBTF_CodeExplorer_cacheCodeExplorer}
-    {$define _lazExt_aBTF_CodeExplorer_API_004_}
-    {$endif}
-    {$define _lazExt_aBTF_CodeExplorer_API_005_}
-{$else}
-    //---- стандартный (через IDE Lazarus) метод работы
-    {$define _lazExt_aBTF_CodeExplorer_API_002_}
-    {$define _lazExt_aBTF_CodeExplorer_API_001_}
+{$ifDef lazExt_aBTF_ObjectInspector_BTF_use_lclAPI}
+    {$undef  _lazExt_aBTF_BTF_use_vclAPI_}
+    {$define _lazExt_aBTF_BTF_use_lclAPI_}
+    {$undef  _lazExt_aBTF_BTF_use_winAPI_}
 {$endif}
+{$ifDef lazExt_aBTF_ObjectInspector_BTF_use_winAPI}
+    {$undef  _lazExt_aBTF_BTF_use_vclAPI_}
+    {$undef  _lazExt_aBTF_BTF_use_lclAPI_}
+    {$define _lazExt_aBTF_BTF_use_winAPI_}
+{$endif}
+//----
 {$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}
     {$define _EventLOG_}
 {$else}
@@ -43,55 +41,37 @@ interface
 {$else}
     {$hint 'lazExt_aBTF_ObjectInspector_EventLOG_mode OFF'}
 {$endif}
-{$ifDef lazExt_aBTF_CodeExplorer_Auto_SHOW}
-    {$hint 'lazExt_aBTF_CodeExplorer_Auto_SHOW On'}
+{$ifDef lazExt_aBTF_ObjectInspector_Auto_SHOW}
+    {$hint 'lazExt_aBTF_ObjectInspector_Auto_SHOW On'}
 {$else}
-    {$hint 'lazExt_aBTF_CodeExplorer_Auto_SHOW OFF'}
+    {$hint 'lazExt_aBTF_ObjectInspector_Auto_SHOW OFF'}
 {$endif}
-{$ifDef lazExt_aBTF_CodeExplorer_WinAPI_mode}
+//---
+{$ifDef _lazExt_aBTF_BTF_use_winAPI_}
     {$hint 'lazExt_aBTF_CodeExplorer_WinAPI_mode On'}
-{$else}
-    {$hint 'lazExt_aBTF_CodeExplorer_WinAPI_mode OFF'}
 {$endif}
-{$ifDef lazExt_aBTF_CodeExplorer_cacheCodeExplorer}
-    {$hint 'lazExt_aBTF_CodeExplorer_cacheCodeExplorer On'}
-{$else}
-    {$hint 'lazExt_aBTF_CodeExplorer_cacheCodeExplorer OFF'}
+{$ifDef _lazExt_aBTF_BTF_use_lclAPI_}
+    {$hint 'lazExt_aBTF_CodeExplorer_lclAPI_mode On'}
 {$endif}
+{$ifDef _lazExt_aBTF_BTF_use_vclAPI_}
+    {$hint 'lazExt_aBTF_CodeExplorer_vclAPI_mode On'}
+{$endif}
+
 {$hint '<<<---------------------------------------->>>'}
 {%endRegion}
 
-
-{$undef _lazExt_aBTF_CodeExplorer_API_002_}
-{$undef _lazExt_aBTF_CodeExplorer_API_003_}
-{$undef _lazExt_aBTF_CodeExplorer_API_004_}
-{$undef _lazExt_aBTF_CodeExplorer_API_005_}
-
-
-{$undef _lazExt_aBTF_BTF_use_vclAPI_}
-{$undef _lazExt_aBTF_BTF_use_lclAPI_}
-{$undef _lazExt_aBTF_BTF_use_winAPI_}
-
-
-{$define _lazExt_aBTF_CodeExplorer_API_003_}
-{.$define _lazExt_aBTF_CodeExplorer_API_004_}
-{$define _lazExt_aBTF_CodeExplorer_API_005_}
-
 uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
-        sysutils, Dialogs, lazExt_aBTF_ObjectInspector_DEBUG,
+        Dialogs, lazExt_aBTF_ObjectInspector_DEBUG,
      {$endIf}
-     {$ifDEF _lazExt_aBTF_CodeExplorer_API_003_}
-        windows, Controls,
-     {$endIf}  ObjectInspector,
-     SrcEditorIntf, IDECommands, MenuIntf,  FormEditingIntf,
-     LCLType, PropEdits, ProjectIntf, LazIDEIntf, ComponentEditors,
+     {$ifDef  _lazExt_aBTF_BTF_use_winAPI_}
+        windows,
+     {$endIf}
+     ObjectInspector,
+     FormEditingIntf,
+     LCLType, PropEdits,
      Classes, Forms;
 
 type
-
- {$define _lazExt_aBTF_BTF_use_winAPI_}
-
-
 
  tLazExt_aBTF_ObjectInspector=class
   {%region -- _SETzOrder_ - реализация методов расстановки окон --- /fold}
@@ -111,12 +91,12 @@ type
   {%region -- _wndDSGNR_  - окно "под дизайнером" ----------------- /fold}
   strict private
    _wndDSGNR_:TCustomForm; //< текущая форма "подДизайнерингом"
-  strict private //< подмена аля СабКлассинг
+  strict private //< подмена аля "СабКлассинг"
    _wndDSGNR_onActivate_original_:TNotifyEvent;
     procedure _wndDSGNR_onActivate_myCustom_(Sender:TObject);
     procedure _wndDSGNR_rePlace_onActivate_ (const wnd:TCustomForm);
     procedure _wndDSGNR_reStore_onActivate_ (const wnd:TCustomForm);
-  strict private //< подмена аля СабКлассинг
+  strict private //< подмена аля "СабКлассинг"
    _wndDSGNR_onDestroy_original_:TNotifyEvent;
     procedure _wndDSGNR_onDestroy_myCustom_ (Sender:TObject);
     procedure _wndDSGNR_rePlace_onDestroy_  (const wnd:TCustomForm);
@@ -164,6 +144,15 @@ type
 
 implementation
 
+{$ifDEF _EventLOG_}
+const
+   _cPleaseReport_=
+        LineEnding+
+        'EN: Please report this error to the developer.'+LineEnding+
+        'RU: Пожалуйста, сообщите об этой ошибке разработчику.'+
+        LineEnding;
+{$endIf}
+
 constructor tLazExt_aBTF_ObjectInspector.Create;
 begin
    _wndDSGNR_CLR_
@@ -184,8 +173,9 @@ end;
 //------------------------------------------------------------------------------
 
 {%region --- _SETzOrder_ ------------------------------------------ /fold}
+
 //---
-// выстраивание окон в определенном Z порядкЕ. В резальтате должно получится
+// выстраивание окон в определенном Z порядкЕ. В резУльтате должно получится
 //  wndTOP - на самом верху (по идее оно там и лежит)
 //  wndNXT - сразу под окном wndTOP
 //--- !!! ---
@@ -225,7 +215,6 @@ end;
 //------------------------------------------------------------------------------
 
 // разместить окна по Z порядку: wndNXT сразу под wndTOP
-//  обобщенный метод, вызывает конкретную реализацию.
 function tLazExt_aBTF_ObjectInspector._SETzOrder_(const wndTOP,wndNXT:TCustomForm):boolean;
 begin // корректность вызова (входных параметров)
       // ДОЛЖНА проверяется в ВЫЗЫВАЮЩЕЙ процедуре
@@ -261,8 +250,8 @@ end;
 
 {$ifDEF _EventLOG_}
 const
-   _cTXT_wndEVENT         ='wndEVENT';
-   _cTXT_wndDSGNR         ='wndDSGNR';
+   _cTXT_wndEVENT         = 'wndEVENT';
+   _cTXT_wndDSGNR         = 'wndDSGNR';
    _cTXT_wndDSGNR_rePALCE_='_wndDSGNR_rePALCE_';
    _cTXT_wndDSGNR_reSTORE_='_wndDSGNR_reSTORE_';
 {$endIf}
@@ -498,14 +487,17 @@ begin
     // суда мы попадем тока в случае ОТСУТСТВИЯ кешированной ссылки на
     // окно ObjectInspector, это означает что была смена она "подДизайнерингом"
     // и следовательно процедуру АВТОпоказа можно запускать
-
-
     if not Assigned(result) then begin
         // надо сказать программисту, чтоб он сообщил разработчику (т.е. мне),
         // что тут ОГРОМНЫЙ косячек, и теперь надо реализовывать вызов IDE
         // комманды для показа ObjectInspector
-        {todo: зеализовать}
-        //MessageDlg();
+        {$ifDEF _EventLOG_}
+        DEBUG('ERROR','Window "Object Inspector" NOT FOUND');
+        ShowMessage('Window "Object Inspector" NOT FOUND!'+LineEnding+
+                    'Package "LazExt_aBTF_ObjectInspector" useless. :-('+LineEnding+
+                    'Uninstall it'+
+                   _cPleaseReport_);
+        {$endIf}
     end;
     if Assigned(result)and(not result.Visible) then begin
         result.SendToBack;
@@ -564,7 +556,7 @@ begin // wndDSGNR.Visible=true -- НАДУМАННАЯ проверка, так 
     {$ifDEF _EventLOG_}
     DEBUG('do_BTF_OI_EXECUTE','------------------------->>>>>');
     {$endIf}
-    if Assigned(wndDSGNR) and (wndDSGNR.Visible) then begin
+    if Assigned(wndDSGNR) then begin
         wndOInsp:=_wndOInsp_GET; //< получаем ссылку на экземпляр
         if Assigned(wndOInsp) and (wndOInsp.Visible)
         then begin //< все проверки пройденны, можно начинать
@@ -580,7 +572,7 @@ begin // wndDSGNR.Visible=true -- НАДУМАННАЯ проверка, так 
             then DEBUG('SKIP','wndOInsp is NULL')
            else
             if not wndOInsp.Visible
-            then DEBUG('SKIP','wndOInsp Visible=false');
+            then DEBUG('SKIP','wndOInsp Visible=false')
            else
             begin
                  DEBUG('SKIP','wndOInsp cause is unknown')
@@ -592,9 +584,6 @@ begin // wndDSGNR.Visible=true -- НАДУМАННАЯ проверка, так 
         {$ifDEF _EventLOG_}
         if not Assigned(wndDSGNR)
         then DEBUG('SKIP','wndDSGNR is NULL')
-       else
-        if not wndDSGNR.Visible
-        then DEBUG('SKIP','wndDSGNR Visible=false');
        else
         begin
              DEBUG('SKIP','wndDSGNR cause is unknown')
@@ -608,4 +597,4 @@ end;
 
 {%endRegion}
 
- end.
+end.

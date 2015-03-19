@@ -7,25 +7,30 @@
 
 // определяем режим ДЕБАГ
 //  Позволяет просматривать лог событий в отдельном окне из IDE
-//  View -> IDE Internals -> [eventLog] lazExt_BTF_CodeExplorer
-{$define lazExt_aBTF_ObjectInspector_EventLOG_mode}
+//  View -> IDE Internals -> [eventLog] lazExt_aBTF_ObjectInspector
+{.$define lazExt_aBTF_ObjectInspector_EventLOG_mode}
+
+// АвтоOткрытие окна "Object Inspector".
+{$define lazExt_aBTF_ObjectInspector_Auto_SHOW}
+
+// Режим работы.
+// ------------
 
 // Режим работы через winApi.
 //  Позволяет "вытягивать" окно CodeExplorer на ПЕРД топ позицию, что позволяет
 //  исключить мерцание окон SourceEditor.
 //  Использует мотоды Windows API, поэтому в системах отличных от Windows
 //  автоматически отключается (так как не тестировалась).
-{.$define lazExt_aBTF_CodeExplorer_WinAPI_mode}
+{$define lazExt_aBTF_ObjectInspector_BTF_use_winAPI}
 
-// Авто открытие окна CodeExplorer.
-//  Pаботает ТОЛЬКО в режиме lazExt_aBTF_CodeExplorer_WinAPI_mode.
-//  В обычном режиме это НЕ отключаемая опция.
-{$define lazExt_aBTF_ObjectInspector_Auto_SHOW}
+// Режим работы через vclAPI.
+// НЕ реализовано
+{.$define lazExt_aBTF_ObjectInspector_BTF_use_vclAPI}
 
-// Кешровать окно CodeExplorer.
-//  Но это сомнительная оптимизация.
-//  Pаботает ТОЛЬКО в режиме lazExt_aBTF_CodeExplorer_WinAPI_mode.
-{.$define lazExt_aBTF_CodeExplorer_cacheCodeExplorer}
+// Режим работы через lclAPI.
+// без заморочек, тупо с морганием, через `BringToFront`.
+{.$define lazExt_aBTF_ObjectInspector_BTF_use_lclAPI}
+
 
 
 //------------------------------------------------------------------------------
@@ -36,8 +41,8 @@
 
 {$IFDEF Windows}
 {$else}
-    {$undef  lazExt_aBTF_CodeExplorer_WinAPI_mode}
-    {$undef  lazExt_aBTF_CodeExplorer_cacheCodeExplorer}
-    {$define lazExt_aBTF_CodeExplorer_Auto_SHOW}
+    {$undef  lazExt_aBTF_ObjectInspector_BTF_use_winAPI}
+    {$undef  lazExt_aBTF_ObjectInspector_BTF_use_vclAPI}
+    {$define lazExt_aBTF_ObjectInspector_BTF_use_lclAPI}
 {$endIf}
 

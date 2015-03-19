@@ -38,15 +38,13 @@ procedure DEBUG_window_SHOW;
 procedure DEBUG(const msgTYPE,msgTEXT:string);
 procedure DEBUG(const         msgTEXT:string);
 
-function  addr2str(const p:pointer):string; inline;
-function  addr2txt(const p:pointer):string; inline;
-
 type pMethod=^tMethod;
 
+function  addr2str(const p:pointer):string; inline;
+function  addr2txt(const p:pointer):string; inline;
 function  mthd2txt(const p:pMethod):string; inline;
 
 implementation
-//uses in0k_lazExt_aBTF_ObjectInspector_REG;
 const _c_WndDBG_Caption_='[eventLog] lazExt_aBTF_ObjectInspector';
 
 //==============================================================================
@@ -73,7 +71,6 @@ procedure DEBUG_window_SHOW;
 begin
     if not Assigned(_WndDBG_) then _WndDBG_:=TlazExt_aBTF_ObjectInspector_wndDBG.Create(Application);
     IDEWindowCreators.ShowForm(_WndDBG_,true);
-    //in0k_lazExt_aBTF_ObjectInspector_REG.asd;
 end;
 
 procedure DEBUG(const msgTYPE,msgTEXT:string);
