@@ -4,8 +4,7 @@ unit lazExt_aBTF_ObjectInspector;
 
 interface
 
-{$I in0k_lazExt_aBTF_ObjectInspector_INI.inc}
-
+{$I in0k_lazExt_aBTF_ObjectInspector_INI.inc} //< тут лежат настройки
 {%region --- setUp INLINE SETTINGs for Compile     ---------------- /fold}
 {$undef _lazExt_aBTF_BTF_use_vclAPI_}
 {$undef _lazExt_aBTF_BTF_use_lclAPI_}
@@ -56,7 +55,6 @@ interface
 {$ifDef _lazExt_aBTF_BTF_use_vclAPI_}
     {$hint 'lazExt_aBTF_CodeExplorer_vclAPI_mode On'}
 {$endif}
-
 {$hint '<<<---------------------------------------->>>'}
 {%endRegion}
 
@@ -66,10 +64,8 @@ uses {$ifDEF lazExt_aBTF_ObjectInspector_EventLOG_mode}
      {$ifDef  _lazExt_aBTF_BTF_use_winAPI_}
         windows,
      {$endIf}
-     ObjectInspector,
-     FormEditingIntf,
-     LCLType, PropEdits,
-     Classes, Forms;
+     ObjectInspector, FormEditingIntf,
+     LCLType, PropEdits, Classes, Forms;
 
 type
 
@@ -122,45 +118,18 @@ type
   protected
     function _do_BTF_ObjectInspector_(const wndDSGNR:TCustomForm):boolean;
   {%endRegion}
-  {%region --- ide_Window_CEV : API_004 --------------------------- /fold}
-  {$ifDef _lazExt_aBTF_CodeExplorer_API_004_}
-  strict private
-   _ide_Window_OIV_:tForm;                        //< найденное окно
-   _ide_Window_OIV_onClose_original_:TCloseEvent; //< его событие при выходе
-    procedure _OIV_onClose_myCustom_(Sender:TObject; var CloseAction:TCloseAction);
-    procedure _OIV_rePlace_onClose(const wnd:tForm);
-    procedure _OIV_reStore_onClose(const wnd:tForm);
-  private
-    procedure _CEV_SET_(const wnd:tForm);
-  {$endIf}
-  {%endRegion}
+  protected
+    procedure _ideEvent_ChangeLookupRoot_;
   public
     constructor Create;
-    destructor DESTROY; override;
-  public
-    procedure _ideEvent_ChangeLookupRoot_;
     procedure RegisterInIdeLAZARUS;
   end;
 
 implementation
 
-{$ifDEF _EventLOG_}
-const
-   _cPleaseReport_=
-        LineEnding+
-        'EN: Please report this error to the developer.'+LineEnding+
-        'RU: Пожалуйста, сообщите об этой ошибке разработчику.'+
-        LineEnding;
-{$endIf}
-
 constructor tLazExt_aBTF_ObjectInspector.Create;
 begin
    _wndDSGNR_CLR_
-end;
-
-destructor tLazExt_aBTF_ObjectInspector.DESTROY;
-begin
-    inherited;
 end;
 
 //------------------------------------------------------------------------------
@@ -170,7 +139,37 @@ begin
     GlobalDesignHook.AddHandlerChangeLookupRoot(@_ideEvent_ChangeLookupRoot_);
 end;
 
+procedure tLazExt_aBTF_ObjectInspector._ideEvent_ChangeLookupRoot_;
+var tmp:TPersistent;
+    wnd:TCustomForm;
+begin
+    {$ifDEF _EventLOG_}
+    DEBUG('ideEvent','ChangeLookupRoot -------------------------------->>>>>');
+    {$endIf}
+    tmp:=GlobalDesignHook.LookupRoot;
+    if Assigned(tmp) then begin
+        wnd:=FormEditingHook.GetDesignerForm(tmp);
+        if Assigned(wnd) then begin
+           _wndDSGNR_SET_(wnd);
+           _wndOInsp_CLR_; //< чтобы срабатывал механизм АВТОПОКАЗА
+           _do_BTF_ObjectInspector_(wnd);
+        end;
+    end;
+    {$ifDEF _EventLOG_}
+    DEBUG('ideEvent','ChangeLookupRoot --------------------------------<<<<<');
+    {$endIf}
+end;
+
 //------------------------------------------------------------------------------
+
+{$ifDEF _EventLOG_}
+const
+   _cPleaseReport_=
+        LineEnding+
+        'EN: Please report this error to the developer.'+LineEnding+
+        'RU: Пожалуйста, сообщите об этой ошибке разработчику.'+
+        LineEnding;
+{$endIf}
 
 {%region --- _SETzOrder_ ------------------------------------------ /fold}
 
@@ -517,31 +516,6 @@ begin
 end;
 
 {%endRegion}
-
-//------------------------------------------------------------------------------
-
-procedure tLazExt_aBTF_ObjectInspector._ideEvent_ChangeLookupRoot_;
-var tmp:TPersistent;
-    wnd:TCustomForm;
-begin
-    {$ifDEF _EventLOG_}
-    DEBUG('ideEvent','ChangeLookupRoot -------------------------------->>>>>');
-    {$endIf}
-    tmp:=GlobalDesignHook.LookupRoot;
-    if Assigned(tmp) then begin
-        wnd:=FormEditingHook.GetDesignerForm(tmp);
-        if Assigned(wnd) then begin
-           _wndDSGNR_SET_(wnd);
-           _wndOInsp_CLR_; //< чтобы срабатывал механизм АВТОПОКАЗА
-           _do_BTF_ObjectInspector_(wnd);
-        end;
-    end;
-    {$ifDEF _EventLOG_}
-    DEBUG('ideEvent','ChangeLookupRoot --------------------------------<<<<<');
-    {$endIf}
-end;
-
-//------------------------------------------------------------------------------
 
 {%region --- ВСЯ СУТь --------------------------------------------- /fold}
 
