@@ -16,19 +16,19 @@
 // Режим работы.
 // ------------
 
-// Режим работы через winApi.
+// Режим работы через winApi. (рекомендуемая в Windows)
 //  Позволяет "вытягивать" окно CodeExplorer на ПРЕД-топ позицию, что позволяет
 //  исключить мерцание окон SourceEditor.
 //  Использует мотоды Windows API, поэтому в системах отличных от Windows
 //  автоматически отключается (так как не тестировалась).
 {$define lazExt_aBTF_ObjectInspector_BTF_use_winAPI}
 
-// Режим работы через vclAPI.
-// НЕ реализовано
-{.$define lazExt_aBTF_ObjectInspector_BTF_use_vclAPI}
-
 // Режим работы через lclAPI.
 // без заморочек, тупо с морганием, через `BringToFront`.
+{.$define lazExt_aBTF_ObjectInspector_BTF_use_vclAPI}
+
+// Режим работы через vclAPI.
+// НЕ реализовано
 {.$define lazExt_aBTF_ObjectInspector_BTF_use_lclAPI}
 
 

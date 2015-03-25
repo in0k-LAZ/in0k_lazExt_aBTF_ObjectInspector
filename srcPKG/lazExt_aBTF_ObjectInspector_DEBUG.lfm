@@ -18,7 +18,6 @@ object lazExt_aBTF_ObjectInspector_wndDBG: TlazExt_aBTF_ObjectInspector_wndDBG
     Top = 0
     Width = 320
     Anchors = [akTop, akLeft, akRight, akBottom]
-    OnChange = Memo1Change
     ScrollBars = ssBoth
     TabOrder = 0
   end

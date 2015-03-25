@@ -7,9 +7,10 @@ interface
 uses MenuIntf, Controls, IDEWindowIntf,
   SysUtils, Forms, StdCtrls, ActnList, Classes;
 
+
 type
 
-  { TlazExt_aBTF_ObjectInspector_wndDBG }
+  pMethod=^tMethod;
 
   TlazExt_aBTF_ObjectInspector_wndDBG = class(TForm)
     a_StayOnTop: TAction;
@@ -25,20 +26,16 @@ type
     procedure a_StayOnTopUpdate(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
-    procedure Memo1Change(Sender: TObject);
   public
     procedure Message(const TextMSG:string);
     procedure Message(const msgTYPE,msgTEXT:string);
   end;
 
 procedure RegisterInIdeLAZARUS;
-
 procedure DEBUG_window_SHOW;
+
 procedure DEBUG(const msgTYPE,msgTEXT:string);
 procedure DEBUG(const         msgTEXT:string);
-
-type pMethod=^tMethod;
 
 function  addr2str(const p:pointer):string; inline;
 function  addr2txt(const p:pointer):string; inline;
@@ -121,16 +118,6 @@ procedure TlazExt_aBTF_ObjectInspector_wndDBG.FormCreate(Sender: TObject);
 begin
     Caption  :=_c_WndDBG_Caption_;
     FormStyle:=fsStayOnTop;
-end;
-
-procedure TlazExt_aBTF_ObjectInspector_wndDBG.FormDestroy(Sender: TObject);
-begin
-
-end;
-
-procedure TlazExt_aBTF_ObjectInspector_wndDBG.Memo1Change(Sender: TObject);
-begin
-
 end;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
