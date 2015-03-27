@@ -5,13 +5,13 @@
 
 ##Использование
 
-Допустим, работая в окне **"Source Editor"** и имея расположение окон 
+Допустим, работая в окне **"Source Editor"** и имея расположение окон
 
-![рис. 1](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/aBTF_FormEditor_ObjectInspector_FROM.png)
+![рис. 1](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_SourceEditor_CodeExplorer.png)
 
 нажав клавишу **F12**, для перехода в режим редактирования формы, получим следующую картинку
 
-![рис. 2](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/aBTF_FormEditor_ObjectInspector.png)
+![рис. 2](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_FormEditor_ObjectInspector.png)
 
 где:
 
