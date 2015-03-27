@@ -5,18 +5,16 @@
 
 ##Использование
 
-Допустим, работая в окне **"Source Editor"** и имея расположение окон
+Допустим, работая в окне "**Source Editor**" и имея расположение окон *(a)*, нажав клавишу **F12**, для перехода в режим редактирования формы, получим следующую картинку *(с)*
 
-![рис. 1](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_SourceEditor_CodeExplorer.png)
-
-нажав клавишу **F12**, для перехода в режим редактирования формы, получим следующую картинку
-
-![рис. 2](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_FormEditor_ObjectInspector.png)
+| a | b | c |
+|---|---|---|
+|![рис. 1](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_SourceEditor_CodeExplorer.png)| **F12** |![рис. 2](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_FormEditor_ObjectInspector.png)|
 
 где:
 
-1. окно "Form Editor" получившее фокус
-2. окно "Object Inspector" автоматически перемещенное на "передний" план.
+1. окно "**Form Editor**" получившее фокус
+2. окно "**Object Inspector**" автоматически перемещенное на "передний" план.
 
 ## Настройка и установка
 
