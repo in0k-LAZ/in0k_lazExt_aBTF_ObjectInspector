@@ -26,10 +26,9 @@ interface
     {$define _lazExt_aBTF_BTF_use_winAPI_}
 {$endif}
 //----
+{$undef  _EventLOG_}
 {$ifDef lazExt_aBTF_ObjectInspector_EventLOG_mode}
     {$define _EventLOG_}
-{$else}
-    {$undef  _EventLOG_}
 {$endIf}
 {$define _INLINE_}
 {%endRegion}
@@ -517,7 +516,7 @@ end;
 
 {%endRegion}
 
-{%region --- ВСЯ СУТь --------------------------------------------- /fold}
+{%region ---  ВСЯ СУТь   ------------------------------------------ /fold}
 
 { Целевая процедура этого компoнента.
     Все что тут написано работает ради того чтобы запустить эту процедуру.
