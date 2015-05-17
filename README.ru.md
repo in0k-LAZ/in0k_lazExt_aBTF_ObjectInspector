@@ -13,9 +13,9 @@
 `in0k_lazExt_aBTF_ObjectInspector_INI.inc`.
 
 ### Дополнительно
-Подробно про особенности работы, установку и настройку пакета читайте на
+* Подробно про особенности работы, установку и настройку пакета читайте на
 страницах *[wiki]*.
-Совместно с этим пакетом рекомендую использовать
+* Совместно с этим пакетом рекомендую использовать
 [in0k\_lazExt\_aBTF\_CodeExplorer](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_CodeExplorer).
 
 [Lazarus IDE]: http://www.lazarus-ide.org/

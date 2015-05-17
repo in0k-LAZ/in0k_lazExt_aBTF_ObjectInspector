@@ -1,27 +1,24 @@
-Описание
-========
+### Overview
 
-**Пакет расширение Lazarus IDE**: перемещение на "передний" план окна ["Object Inspector"](http://wiki.freepascal.org/IDE_Window:_Object_Inspector) при переходе в окно ["Form Editor"](http://wiki.freepascal.org/IDE_Window:_Form_Editor).
+*[Expert]* for *[Lazarus IDE]*.
 
-##Использование
+###### Adds features to the IDE
+When *"[Form Editor]"* window receive focus, window *"[Object Inspector]"*
+bring to second plan (moves the window *"Object Inspector"* of the sequence
+Z-Order directly under active window *"Form Editor"*).
 
-Допустим, работая в окне "**Source Editor**" и имея расположение окон *(a)*, нажав клавишу **F12**, для перехода в режим редактирования формы, получим следующую картинку *(с)*
+### Installation and Setup
+Installation by standard scheme. If necessary, before you install the package,
+edit the configuration file `in0k_lazExt_aBTF_ObjectInspector_INI.inc`.
 
-| a | b | c |
-|---|---|---|
-|![рис. 1](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_SourceEditor_CodeExplorer.png)| **F12** |![рис. 2](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/blob/master/IDE_FormEditor_ObjectInspector.png)|
+### Remarks
+* Read *[wiki]* for more details.
+* Together with this package I recommend to use
+[in0k\_lazExt\_aBTF\_CodeExplorer](https://github.com/in0k-LAZ/in0k_lazExt_aBTF_CodeExplorer).
 
-где:
-
-1. окно "**Form Editor**" получившее фокус
-2. окно "**Object Inspector**" автоматически перемещенное на "передний" план.
-
-## Настройка и установка
-
-1. Скопировать исходники в любую удобную директорию `<$someDir>`.
-2. Открыть файл `<$someDir>/in0k_lazExt_aBTF_ObjectInspector.lpk` в **Lazarus IDE**.
-3. Настроить редактируя файл `<$someDir>/in0k_lazext_abtf_objectinspector_ini.inc`.
-4. Скомпилировать и установить пакет.
-
-*замечания*: подробно про установку пакетов должно быть написано [тут](http://wiki.freepascal.org/Install_Packages). 
+[Lazarus IDE]: http://www.lazarus-ide.org/
+[Expert]: http://wiki.lazarus.freepascal.org/Extending_the_IDE#Overview
+[Form Editor]: http://wiki.freepascal.org/IDE_Window:_Form_Editor
+[Object Inspector]: http://wiki.freepascal.org/IDE_Window:_Object_Inspector
+[wiki]: https://github.com/in0k-LAZ/in0k_lazExt_aBTF_ObjectInspector/wiki
 
