@@ -22,7 +22,7 @@
         </Debugging>
       </Linking>
     </CompilerOptions>
-    <Version Minor="9" Release="2"/>
+    <Version Minor="9" Release="9" Build="1"/>
     <Files Count="5">
       <Item1>
         <Filename Value="in0k_lazExt_aBTF_ObjectInspector_INI.inc"/>
