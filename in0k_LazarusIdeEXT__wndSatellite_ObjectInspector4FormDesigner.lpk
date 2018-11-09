@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <Package Version="4">
+    <PathDelim Value="\"/>
+    <Name Value="in0k_LazarusIdeEXT__wndSatellite_ObjectInspector4FormDesigner"/>
+    <Type Value="DesignTime"/>
+    <CompilerOptions>
+      <Version Value="11"/>
+      <PathDelim Value="\"/>
+      <SearchPaths>
+        <OtherUnitFiles Value="srcEXT\in0k_lazarusIdeSRC__expertCORE;srcEXT\in0k_lazarusIdeSRC__wndDEBUG;srcEXT\in0k_lazarusIdeSRC__fuckUpControl;srcEXT\in0k_lazarusIdeSRC__ideForms;srcEXT\in0k_lazarusIdeSRC__B2SP;srcEXT\in0k-bringToSecondPlane;srcPKG"/>
+        <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+      </SearchPaths>
+      <CodeGeneration>
+        <Optimizations>
+          <OptimizationLevel Value="2"/>
+        </Optimizations>
+      </CodeGeneration>
+    </CompilerOptions>
+    <Version Minor="9" Release="9" Build="1"/>
+    <Files Count="10">
+      <Item1>
+        <Filename Value="in0k_LazarusIdeSRC__Settings.inc"/>
+        <Type Value="Text"/>
+      </Item1>
+      <Item2>
+        <Filename Value="in0k_LazarusIdeEXT__REGISTER.pas"/>
+        <HasRegisterProc Value="True"/>
+        <UnitName Value="in0k_LazarusIdeEXT__REGISTER"/>
+      </Item2>
+      <Item3>
+        <Filename Value="srcPKG\in0k_lazarusIdePLG__wndSatellite_ObjectInspector4FormDesigner.pas"/>
+        <UnitName Value="in0k_lazarusIdePLG__wndSatellite_ObjectInspector4FormDesigner"/>
+      </Item3>
+      <Item4>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__expertCORE\in0k_lazarusIdeSRC__expertCORE.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__expertCORE"/>
+      </Item4>
+      <Item5>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__wndDEBUG\in0k_lazarusIdeSRC__wndDEBUG.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__wndDEBUG"/>
+      </Item5>
+      <Item6>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__fuckUpControl\in0k_lazarusIdeSRC__fuckUp_onActivate.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__fuckUp_onActivate"/>
+      </Item6>
+      <Item7>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__ideForms\in0k_lazarusIdeSRC__ideForm_ObjectInspector.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__ideForm_ObjectInspector"/>
+      </Item7>
+      <Item8>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__B2SP\in0k_lazarusIdeSRC__B2SP.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__B2SP"/>
+      </Item8>
+      <Item9>
+        <Filename Value="srcEXT\in0k-bringToSecondPlane\in0k_bringToSecondPlane_LazLCL.pas"/>
+        <UnitName Value="in0k_bringToSecondPlane_LazLCL"/>
+      </Item9>
+      <Item10>
+        <Filename Value="srcEXT\in0k-bringToSecondPlane\in0k_bringToSecondPlane_WinAPI.pas"/>
+        <UnitName Value="in0k_bringToSecondPlane_WinAPI"/>
+      </Item10>
+    </Files>
+    <RequiredPkgs Count="2">
+      <Item1>
+        <PackageName Value="IDEIntf"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPkgs>
+    <UsageOptions>
+      <UnitPath Value="$(PkgOutDir)"/>
+    </UsageOptions>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+  </Package>
+</CONFIG>
