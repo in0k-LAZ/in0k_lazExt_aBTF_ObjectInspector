@@ -7,8 +7,9 @@ interface
 {$include in0k_LazarusIdeSRC__Settings.inc}
 
 uses {$ifDef in0k_LazarusIdeEXT__DEBUG}in0k_lazarusIdeSRC__wndDEBUG,{$endIf}
-  in0k_lazarusIdeSRC__expertCORE,
-  in0k_lazarusIdeSRC__fuckUp_onActivate,
+  //in0k_lazarusIdeSRC__expertCORE,
+  in0k_lazarusIdeSRC__wndSatellite_templates__4FormDesigner,
+  //in0k_lazarusIdeSRC__fuckUp_onActivate,
   in0k_lazarusIdeSRC__ideForm_ObjectInspector,
   in0k_lazarusIdeSRC__B2SP,
   //-------
@@ -84,20 +85,20 @@ uses {$ifDef in0k_LazarusIdeEXT__DEBUG}in0k_lazarusIdeSRC__wndDEBUG,{$endIf}
 
 type
 
- tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner=class(tIn0k_lazIdeSRC_expertCORE)
+ tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner=class(tIn0k_LazIdeEXT__wndStllte_TMPLTs_4FormDesigner)
   protected
-   _fuckUp_onActivate_:tIn0k_lazarusIdeSRC__fuckUp_onActivate;
+  // _fuckUp_onActivate_:tIn0k_lazarusIdeSRC__fuckUp_onActivate;
   protected //< ОСНОВНОЕ событие, все ради него и затевается
-    procedure _wrkEvent_;
+    procedure _wrkEvent_; override;
   protected //< события IDE провацируещие наше ОСНОВНОЕ
-    procedure _ideEvent_selfFormActivate_({%H-}sender:tObject);
-    procedure _ideEvent_ChangeLookupRoot_;
+    //procedure _ideEvent_selfFormActivate_({%H-}sender:tObject);
+    //procedure _ideEvent_ChangeLookupRoot_;
   protected
-    procedure LazarusIDE_SetUP; override;
-    procedure LazarusIDE_CLEAN; override;
+    //procedure LazarusIDE_SetUP; override;
+    //procedure LazarusIDE_CLEAN; override;
   public
-    constructor Create;
-    destructor DESTROY; override;
+    //constructor Create;
+    //destructor DESTROY; override;
   end;
 
   (*
@@ -161,6 +162,7 @@ implementation
 {$endIf}
 {%endregion}
 
+(*
 constructor tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.Create;
 begin
     inherited;
@@ -172,16 +174,14 @@ destructor tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.DESTROY;
 begin
    _fuckUp_onActivate_.FREE;
     inherited;
-end;
+end;*)
 
 //------------------------------------------------------------------------------
 
 procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._wrkEvent_;
 var tmpWnd:TCustomForm;
 begin
-    {$ifDef _debugLOG_}
-    DEBUG('_wrkEvent_','');
-    {$endIf}
+    inherited;
     // тут ВСЕ просто ... найти окно AnchorEditor и вытащить его на ВТОРОЙ план
     tmpWnd:=in0k_lazarusIdeSRC__ideForm_ObjectInspector.Form_FindInIDE;
     if Assigned(tmpWnd) and //< оно ЕСТЬ
@@ -199,7 +199,7 @@ end;
 // Происходит:
 //   - СОЗДАНИЕ нового окна
 //   - ПЕРЕХОД между уже созданными
-procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._ideEvent_ChangeLookupRoot_;
+(*procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._ideEvent_ChangeLookupRoot_;
 var sender:TCustomForm;
 begin
     if Assigned(GlobalDesignHook.LookupRoot) then begin
@@ -212,33 +212,33 @@ begin
     DEBUG('_ideEvent_ChangeLookupRoot_', 'targetWND'+addr2txt(sender));
     {$endIf}
    _wrkEvent_;
-end;
+end;*)
 
 // окно `DesignerForm` САМО активировалося
 //-----
 // Происходит:
 //   - ВОЗВРАЩЕНИЕ "фокуса" в окно, которое УЖЕ ранее было в _ideEvent_ChangeLookupRoot_
-procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._ideEvent_selfFormActivate_(sender:tObject);
+(*procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._ideEvent_selfFormActivate_(sender:tObject);
 begin
     {$ifDef _debugLOG_}
     DEBUG('_ideEvent_selfFormActivate_', 'targetWND'+addr2txt(Sender));
     {$endIf}
    _wrkEvent_;
-end;
+end;*)
 
 //------------------------------------------------------------------------------
 
-procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.LazarusIDE_SetUP;
+(*procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.LazarusIDE_SetUP;
 begin
     inherited;
     GlobalDesignHook.AddHandlerChangeLookupRoot(@_ideEvent_ChangeLookupRoot_);
-end;
+end;*)
 
-procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.LazarusIDE_CLEAN;
+(*procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner.LazarusIDE_CLEAN;
 begin
     inherited;
     GlobalDesignHook.RemoveHandlerChangeLookupRoot(@_ideEvent_ChangeLookupRoot_);
-end;
+end;*)
 
 end.
 
