@@ -9,7 +9,6 @@
 //  Позволяет просматривать лог событий в отдельном окне из IDE
 //  View -> IDE Internals -> [eventLog] lazExt_aBTF_ObjectInspector
 {.$define lazExt_aBTF_ObjectInspector_EventLOG_mode}
-
 {$define in0k_LazarusIdeEXT__DEBUG}
 
 // АвтоOткрытие окна "Object Inspector".
