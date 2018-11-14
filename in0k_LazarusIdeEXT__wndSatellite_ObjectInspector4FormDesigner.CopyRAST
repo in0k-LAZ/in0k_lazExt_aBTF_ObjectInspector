@@ -3,7 +3,7 @@
   <approvedFILEs2NAMEs>     
     <ROOT>                  
       <nameStated Value="in0k_ideExpert__wndSatellite_ObjectInspector4FormDesigner"/>
-      <pathStated Value="D:\!PROGECTs\!in0k\in0k_ideExpert__wndSatellite_ObjectInspector4FormDesigner"/>
+      <pathStated Value="D:\!PROGECTs\!in0k\in0k-LazarusIDE-plugins---USE\in0k_ideExpert__wndSatellite_ObjectInspector4FormDesigner"/>
     </ROOT>
     <Customers>
       <FILEs count="2">
@@ -19,11 +19,11 @@
       <item0 count="2" Path="srcEXT">
         <item0>
           <template Value="in0k_LazarusIdeSRC"/>
-          <exchange Value="src_wndSatellite_ObjectInspector4FormDesigner"/>
+          <exchange Value="src_wndSatelliteOI4FD"/>
         </item0>
         <item1>
           <template Value="in0k_"/>
-          <exchange Value="src_wndSatellite_ObjectInspector4FormDesigner__"/>
+          <exchange Value="src_wndSatelliteOI4FD"/>
         </item1>
       </item0>
     <item1 count="1" Path="srcPKG">

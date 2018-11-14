@@ -11,6 +11,9 @@
 {.$define lazExt_aBTF_ObjectInspector_EventLOG_mode}
 {$define in0k_LazarusIdeEXT__DEBUG}
 
+{$define in0k_lazarusIdeSRC__fuckUp_tControlWndProc__DEBUG}
+{$define in0k_lazarusIdeSRC__B2SP__DEBUG}
+
 // АвтоOткрытие окна "Object Inspector".
 {$define lazExt_aBTF_ObjectInspector_Auto_SHOW}
 

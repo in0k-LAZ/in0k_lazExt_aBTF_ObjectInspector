@@ -184,12 +184,28 @@ begin
     inherited;
     // тут ВСЕ просто ... найти окно AnchorEditor и вытащить его на ВТОРОЙ план
     tmpWnd:=in0k_lazarusIdeSRC__ideForm_ObjectInspector.Form_FindInIDE;
-    if Assigned(tmpWnd) and //< оно ЕСТЬ
-       tmpWnd.Visible and   //< оно ВИДИМО
-       (NOT (csDestroying in tmpWnd.ComponentState)) //< оно НЕ уничтожается
-    then begin
-        In0k_lazIdeSRC___B2SP(tmpWnd);
+    //
+    if NOT Assigned(tmpWnd) then begin
+        {$ifDef _debugLOG_}
+        DEBUG('_wrkEvent_', 'targetWND NOT found');
+        {$endIf}
+        EXIT;
     end;
+    if csDestroying in tmpWnd.ComponentState then begin
+        {$ifDef _debugLOG_}
+        DEBUG('_wrkEvent_', 'targetWND is csDestroying');
+        {$endIf}
+        EXIT;
+    end;
+    if NOT tmpWnd.Visible then begin
+        {$ifDef _debugLOG_}
+        DEBUG('_wrkEvent_', 'targetWND NOT Visible');
+        {$endIf}
+        EXIT;
+    end;
+    //
+    In0k_lazIdeSRC___B2SP(tmpWnd);
+    //
 end;
 
 //------------------------------------------------------------------------------
