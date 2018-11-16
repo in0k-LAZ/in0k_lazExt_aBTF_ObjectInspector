@@ -18,7 +18,7 @@
       </CodeGeneration>
     </CompilerOptions>
     <Version Minor="9" Release="9" Build="1"/>
-    <Files Count="11">
+    <Files Count="13">
       <Item1>
         <Filename Value="in0k_LazarusIdeEXT__REGISTER.pas"/>
         <HasRegisterProc Value="True"/>
@@ -64,6 +64,14 @@
         <Filename Value="in0k_LazarusIdeSRC__SETTINGs.inc"/>
         <Type Value="Include"/>
       </Item11>
+      <Item12>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__fuckUpControl\in0k_lazarusIdeSRC__tControl_fuckUpWndProc.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__tControl_fuckUpWndProc"/>
+      </Item12>
+      <Item13>
+        <Filename Value="srcEXT\in0k_lazarusIdeSRC__fuckUpControl\in0k_lazarusIdeSRC__tControls_fuckUpWndProc.pas"/>
+        <UnitName Value="in0k_lazarusIdeSRC__tControls_fuckUpWndProc"/>
+      </Item13>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>
