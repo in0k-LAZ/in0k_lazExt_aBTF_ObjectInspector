@@ -5,11 +5,14 @@ unit in0k_lazarusIdePLG__wndSatellite_ObjectInspector4FormDesigner;
 interface
 
 {$include in0k_LazarusIdeSRC__Settings.inc}
+//------------------------------------------------------------------------------
+{$UNDEF in0k_lazarusIdePLG__wndSatellite_ObjectInspector__AUTO_SHOW}//!!!!!!!!!!
+// ну уж ОЧЕНЬ сомнительная возможность.
+// СЛОЖНО закрыть ObjectInspector (моргает в выпригивает обратно если мы стояли
+// на форме). Поэтому пока НЕТ. может потом что-ниб придумаю.
 
 uses {$ifDef in0k_LazarusIdeEXT__DEBUG}in0k_lazarusIdeSRC__wndDEBUG,{$endIf}
-  //in0k_lazarusIdeSRC__expertCORE,
   in0k_lazarusIdeSRC__wndSatellite_templates__4FormDesigner,
-  //in0k_lazarusIdeSRC__fuckUp_onActivate,
   in0k_lazarusIdeSRC__ideForm_ObjectInspector,
   in0k_lazarusIdeSRC__B2SP,
   //-------
@@ -176,6 +179,8 @@ begin
     inherited;
 end;*)
 
+
+
 //------------------------------------------------------------------------------
 
 procedure tIn0k_LazIdeEXT__wndStllte_ObjectInspector4FormDesigner._wrkEvent_;
@@ -185,6 +190,11 @@ begin
     // тут ВСЕ просто ... найти окно AnchorEditor и вытащить его на ВТОРОЙ план
     tmpWnd:=in0k_lazarusIdeSRC__ideForm_ObjectInspector.Form_FindInIDE;
     //
+    {$ifdef in0k_lazarusIdePLG__wndSatellite_ObjectInspector__AUTO_SHOW}
+    if NOT Assigned(tmpWnd) then begin
+        tmpWnd:=in0k_lazarusIdeSRC__ideForm_ObjectInspector.Form_ShowByCMD;
+    end;
+    {$endIf}
     if NOT Assigned(tmpWnd) then begin
         {$ifDef _debugLOG_}
         DEBUG('_wrkEvent_', 'targetWND NOT found');
@@ -197,15 +207,27 @@ begin
         {$endIf}
         EXIT;
     end;
-    if NOT tmpWnd.Visible then begin
+    {$ifdef in0k_lazarusIdePLG__wndSatellite_ObjectInspector__AUTO_SHOW}
+        if NOT tmpWnd.Visible then begin
+            // тут её надо ОФИЦИАЛЬНО перепоказать
+            tmpWnd:=in0k_lazarusIdeSRC__ideForm_ObjectInspector.Form_ShowByCMD;
+        end;
+    {$else}
+        if NOT tmpWnd.Visible then begin
+            {$ifDef _debugLOG_}
+            DEBUG('_wrkEvent_', 'targetWND NOT Visible');
+            {$endIf}
+            EXIT;
+        end;
+    {$endIf}
+    if tmpWnd.UseDockManager then begin //< если у формы, то надо уйти :-(
         {$ifDef _debugLOG_}
-        DEBUG('_wrkEvent_', 'targetWND NOT Visible');
+        DEBUG('_wrkEvent_', 'targetWND UseDockManager');
         {$endIf}
         EXIT;
     end;
     //
-    In0k_lazIdeSRC___B2SP(tmpWnd);
-    //
+    In0k_lazIdeSRC___B2SP(tmpWnd); //< дергаем окно уже наконец.
 end;
 
 //------------------------------------------------------------------------------
